@@ -3,7 +3,7 @@ const assert = require('node:assert');
 (async () => {
   const startPg = require('./pg.js'); const pg = await startPg();
   process.env.PORT = '3977';
-  const server = require('../server.js');
+  const server = require('../dev-server.js');
   const E = require('../public/engine.js');
   const base = 'http://localhost:3977';
   const client = (ip = '127.0.0.1') => { let ck = ''; return async (method, url, body, ct = 'application/json') => {
