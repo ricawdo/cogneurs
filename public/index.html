@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>L'Arène des Cogneurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: rowdy village fight-night, cheeky French humour
+   IDEA: a fairground arena poster where your brawler is the headliner; events are street posters
+   PICTURE: the brawler itself, huge, in a mustard spotlight; the arena or a Paris street as stage
+   COLOUR and TYPE: mustard field, ink brown, hot red accent; event band in Paris navy; Lilita One + Nunito
+   LAYOUT: hero band (sprite + identity), event band, opponents row, full-width arena */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#17110d);--ink:light-dark(#1d1310,#f6efe4);--mut:light-dark(#6b5a4e,#b9a998);--field:light-dark(#f4b41a,#33250b);--card:light-dark(#ffffff,#221912);--line:light-dark(#ecdcbc,#3d2e22);--red:#e23d28;--redD:#8f1f12;--teal:light-dark(#1f6f78,#5fc4cf);--spot:light-dark(#ffe28a,#5a4310);--navy:light-dark(#1f3a6b,#16294d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Nunito,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3,.logo,button,.pill,.vs,.result b,.opp b{font-family:"Lilita One",Impact,sans-serif;font-weight:400;letter-spacing:.01em}
+h1{font-size:clamp(34px,6vw,52px);line-height:1.05;margin:0 0 8px;text-wrap:balance}
+h2{font-size:28px;line-height:1.1;margin:0}
+h3{font-size:20px;margin:18px 0 8px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px max(5vw,16px);background:var(--ink);color:var(--bg)}
+.logo{font-size:24px}
+.hero{background:var(--field)}
+.hgrid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:center}
+.pedestal{position:relative;display:grid;place-items:center;min-height:340px;background:radial-gradient(closest-side,var(--spot),transparent)}
+.pedestal .big{width:min(300px,70%)}
+.pedestal .pets{display:flex;gap:6px;position:absolute;bottom:8px;right:6%}
+.pedestal .pets div{width:70px}
+.lead{font-size:17px;max-width:52ch}
+label{font-weight:800;display:block;margin:16px 0 6px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input{font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:3px solid var(--ink);background:var(--card);color:var(--ink);flex:1 1 220px;min-height:52px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+button{font-size:19px;min-height:48px;padding:8px 20px;border:0;border-radius:12px;background:var(--red);color:#fff;box-shadow:0 4px 0 var(--redD);cursor:pointer;transition:transform .08s}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--redD)}
+button:disabled{background:#9a8e84;box-shadow:0 4px 0 #6b625b;cursor:not-allowed}
+button.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink);font-size:16px}
+.err{color:var(--red);font-weight:800;min-height:1.5em;margin:6px 0 0}
+.sub{margin:0 0 14px;font-weight:700;opacity:.8}
+.stat{display:grid;grid-template-columns:7.5em minmax(0,1fr) 2.5em;gap:10px;align-items:center;margin:5px 0;font-weight:700}
+.stat .bar{height:12px;background:color-mix(in srgb,var(--ink) 14%,transparent);border-radius:6px;overflow:hidden}
+.stat .bar i{display:block;height:100%;background:var(--ink);border-radius:6px}
+.stat span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.xp{height:16px;border-radius:8px;background:color-mix(in srgb,var(--ink) 14%,transparent);overflow:hidden;margin:4px 0 2px}
+.xp i{display:block;height:100%;background:var(--red)}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.item{background:color-mix(in srgb,var(--bg) 70%,transparent);border-radius:10px;padding:8px 10px;font-size:14px;line-height:1.3}
+.item b{display:block;font-size:15px}.item small{color:var(--mut)}
+.item.w{box-shadow:inset 0 -3px 0 var(--red)}.item.s{box-shadow:inset 0 -3px 0 var(--teal)}.item.p{box-shadow:inset 0 -3px 0 #8a5a2b}
+.h2row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.pill{background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:99px;font-size:16px;white-space:nowrap}
+.opps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.opp{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:16px;padding:14px;align-items:center}
+.opp .ms{background:radial-gradient(closest-side,var(--spot),transparent);border-radius:12px}
+.opp b{font-size:22px;display:block;line-height:1.1}
+.opp small{display:block;color:var(--mut);font-size:13px}
+.opp button{grid-column:1/-1}
+.hist{list-style:none;padding:0;margin:10px 0 24px;display:grid;gap:6px}
+.hist li{display:flex;gap:10px;align-items:center;font-weight:700;flex-wrap:wrap}
+.tag{font-family:"Lilita One";font-size:14px;padding:2px 10px;border-radius:99px;color:#fff;background:var(--teal)}.tag.l{background:#8c7d72}.tag.e{background:var(--navy)}
+.empty{color:var(--mut)}
+/* event band */
+.event{background:var(--navy);color:#fff;position:relative}
+.event::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:linear-gradient(90deg,#2b4fa3 0 33.3%,#fff 0 66.6%,#e23d28 0)}
+.event .wrap{display:grid;gap:18px}
+.event h2{font-size:clamp(30px,5vw,44px)}
+.event .tags{display:flex;gap:8px;flex-wrap:wrap}
+.event .tags span{background:#ffffff22;padding:4px 12px;border-radius:99px;font-weight:800;white-space:nowrap}
+.event .tags .hot{background:#e23d28}
+.event p{margin:0;max-width:62ch}
+.event .note{font-size:14px;opacity:.8}
+.gauge{display:grid;gap:6px}.gauge .gb{display:flex;height:22px;border-radius:11px;overflow:hidden;background:#ffffff22}.gauge .gb i{display:block;height:100%}.gauge .gl{display:flex;justify-content:space-between;gap:12px;font-weight:800;flex-wrap:wrap}.gauge small{opacity:.8;font-weight:700}
+.camp .ud{display:inline-block;margin-top:6px;background:#e23d28;color:#fff;font-family:"Lilita One";font-size:14px;padding:2px 10px;border-radius:99px}
+.troph{display:flex;gap:8px;flex-wrap:wrap}.troph span{background:color-mix(in srgb,var(--bg) 70%,transparent);border-radius:99px;padding:4px 12px;font-weight:800;font-size:14px}
+.camps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.camp{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:center;text-align:left;background:#ffffff14;color:#fff;box-shadow:inset 0 0 0 2px #ffffff55;padding:14px;height:100%}
+.camp b{display:block;font-size:26px;font-weight:400}.camp span{font-family:Nunito,sans-serif;font-size:15px;opacity:.85}
+.event .pill{background:#fff;color:var(--navy)}
+.event .opp{border-color:transparent}
+/* fight */
+.bars{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:12px;align-items:center;margin-bottom:12px}
+.hpb b{font-family:"Lilita One";font-weight:400;font-size:22px;display:block;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hpb .bar{height:18px;border-radius:9px;background:color-mix(in srgb,var(--ink) 15%,transparent);overflow:hidden;border:2px solid var(--ink)}
+.hpb .bar i{display:block;height:100%;width:100%;background:#3fae4a;transition:width .3s}
+.hpb.r{text-align:right}.hpb.r .bar{transform:scaleX(-1)}
+.hpb span{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.vs{font-size:32px;color:var(--red)}
+.arena{position:relative;aspect-ratio:16/8;border-radius:18px;overflow:hidden;border:4px solid var(--ink);background:linear-gradient(#3b2a20 0 44%,#7a5232 44% 48%,#5d3d24 48% 50%,transparent 50%),radial-gradient(ellipse at 50% 120%,#f6d596,#dca35e 75%,#c88c4b)}
+.arena.paris{background:#8c8f94}
+.decor{position:absolute;inset:0;width:100%;height:100%}
+.crowd{position:absolute;inset:0 0 56% 0;width:100%;height:44%}
+.f{position:absolute;bottom:12%;transform:translateX(-50%);width:14%}
+.f.pet{bottom:4%;width:8%}.f.pet.ours{width:11%}.f.pet.bird{width:6%}
+.f .spr{transform-origin:50% 95%;transition:transform .4s,opacity .4s,filter .4s}
+.f.r .spr svg{transform:scaleX(-1)}
+.f svg{display:block;width:100%;height:auto;overflow:visible}
+.f.ko .spr{transform:rotate(-78deg) translateY(10%);opacity:.55;filter:grayscale(1)}
+.f.r.ko .spr{transform:rotate(78deg) translateY(10%)}
+.mini{height:6px;border-radius:3px;background:#0005;overflow:hidden;margin:0 15% 4px}.mini i{display:block;height:100%;width:100%;background:#3fae4a;transition:width .3s}
+.num{position:absolute;transform:translateX(-50%);font-family:"Lilita One";font-size:clamp(18px,3vw,30px);color:#fff;-webkit-text-stroke:1.5px #1d1310;paint-order:stroke;pointer-events:none;white-space:nowrap}
+.drop{position:absolute;width:5%;transform:translateX(-50%) rotate(100deg);opacity:.85}.drop svg,.proj svg{width:100%;height:auto;overflow:visible}.proj{position:absolute;width:6%;bottom:30%}
+.num.c{color:#ffd23f;font-size:clamp(22px,4vw,40px)}.num.h{color:#7dff8a}.num.m{font-size:clamp(14px,2vw,20px)}
+.result{position:absolute;inset:0;display:grid;place-items:center;background:#1d1310b3;color:#fff;text-align:center;padding:16px}
+.result b{display:block;font-size:clamp(40px,8vw,72px);line-height:1}
+.result p{margin:8px 0 16px;font-weight:700}
+.ctl{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
+.log{list-style:none;padding:12px 14px;margin:0;background:var(--card);border:2px solid var(--line);border-radius:14px;height:190px;overflow:auto;font-size:15px}
+.log li{padding:3px 0;border-bottom:1px dashed var(--line)}.log li:first-child{font-weight:800}
+/* modal */
+.modal{position:fixed;inset:0;background:#1d1310cc;display:grid;place-items:center;padding:16px;z-index:9}
+.mbox{background:var(--field);border-radius:20px;padding:clamp(20px,4vw,36px);max-width:620px;width:100%;text-align:center;border:4px solid var(--ink)}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:16px}
+.choice{display:block;background:var(--card);color:var(--ink);box-shadow:0 5px 0 var(--ink);padding:18px;text-align:left;height:100%}
+.choice b{display:block;font-size:24px;font-weight:400}
+.choice span{font-family:Nunito,sans-serif;font-size:15px;color:var(--mut)}
+.foot{text-align:center;color:var(--mut);font-size:13px;padding:20px}
+.tabs{display:flex;gap:6px;margin:18px 0 0}.tab{background:transparent;color:var(--ink);box-shadow:inset 0 -3px 0 transparent;border-radius:10px 10px 0 0;font-size:18px}.tab.on{box-shadow:inset 0 -4px 0 var(--red)}
+button.sm{min-height:36px;padding:4px 12px;font-size:14px}
+.rank .tm{width:28px;display:inline-block}.kind{font-family:"Lilita One";font-size:12px;padding:1px 8px;border-radius:99px;background:#8c7d72;color:#fff;margin-right:4px}.kind.pl{background:var(--teal)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px 40px}
+.rank{list-style:none;padding:0;margin:10px 0;display:grid;gap:4px}.rank li{display:grid;grid-template-columns:2em 28px minmax(0,1fr) auto;gap:10px;align-items:center;font-weight:700}.rank li.me{background:color-mix(in srgb,var(--field) 35%,transparent);border-radius:8px}.rank .rk{text-align:right;color:var(--mut)}.rank b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag.d{background:#7b3f99}.note2{font-size:14px;opacity:.8;max-width:52ch}
+#who{display:flex;gap:10px;align-items:center;font-weight:800}#who .ghost{color:var(--bg);box-shadow:inset 0 0 0 2px var(--bg)}
+@media(max-width:700px){#who span{display:none}.hgrid{grid-template-columns:minmax(0,1fr)}.pedestal{min-height:260px;order:-1}.cell .pedestal{order:0}.arena{aspect-ratio:16/11}.f{width:20%}.f.pet{width:11%}.f.pet.ours{width:15%}.f.pet.bird{width:8%}.vs{font-size:22px}.hpb b{font-size:17px}.camp{grid-template-columns:80px minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.f .spr,.hpb .bar i{transition:none}}
+</style>
+</head>
+<body>
+<header class="top"><span class="logo">Cogneurs</span><span id="who"></span></header>
+<main id="app"></main>
+<p class="foot">Jeu original inspiré des auto-battlers à l'ancienne. Tous les visuels sont dessinés en code.</p>
+<script src="/engine.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shade=(h,p)=>'#'+[1,3,5].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(h.substr(i,2),16)*(1+p)))).toString(16).padStart(2,'0')).join('');
+/* ---------- dessins ---------- */
+const WSV={classic:{
+ poele:'<rect x="-2" y="-30" width="4" height="30" rx="2" fill="#6b4226"/><ellipse cy="-42" rx="13" ry="12" fill="#2b2b2b"/><ellipse cy="-42" rx="9" ry="8" fill="#4a4a4a"/>',
+ gourdin:'<path d="M-3 4L3 4L8-38Q0-52-8-38Z" fill="#8b5a2b"/><circle cx="-3" cy="-30" r="2" fill="#5e3a1a"/><circle cx="3" cy="-20" r="1.6" fill="#5e3a1a"/>',
+ dague:'<rect x="-2" y="-6" width="4" height="12" rx="1.5" fill="#5a3a22"/><rect x="-7" y="-9" width="14" height="4" rx="2" fill="#c9a227"/><path d="M-3-9L3-9L0-34Z" fill="#dfe6ea"/>',
+ fouet:'<rect x="-2.5" y="-14" width="5" height="18" rx="2" fill="#5a3a22"/><path d="M0-14Q22-30 8-50Q-6-64 16-74" stroke="#6b4226" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+ marteau:'<rect x="-2.5" y="-46" width="5" height="50" rx="2" fill="#8b5a2b"/><rect x="-13" y="-58" width="26" height="15" rx="3" fill="#5f6368"/><rect x="-13" y="-58" width="26" height="4" rx="2" fill="#8a9096"/>',
+ trident:'<rect x="-2" y="-52" width="4" height="58" rx="2" fill="#9c7b5b"/><path d="M-10-66V-52H10V-66M0-72V-52" stroke="#b7c3c9" stroke-width="3.5" fill="none" stroke-linecap="round"/>',
+ parapluie:'<path d="M0 6V-40" stroke="#333" stroke-width="2.5"/><path d="M0 6q0 6 5 6" stroke="#333" stroke-width="2.5" fill="none"/><path d="M-20-38Q0-66 20-38Q15-43 10-38Q5-43 0-38Q-5-43-10-38Q-15-43-20-38Z" fill="#e23d28"/>',
+ os:'<rect x="-3.5" y="-40" width="7" height="42" rx="3" fill="#efe6cf"/><circle cx="-4" cy="-42" r="5" fill="#efe6cf"/><circle cx="4" cy="-42" r="5" fill="#efe6cf"/><circle cx="-4" cy="3" r="5" fill="#efe6cf"/><circle cx="4" cy="3" r="5" fill="#efe6cf"/>'},
+manif:{
+ poele:'<rect x="-2" y="-30" width="4" height="30" rx="2" fill="#333"/><rect x="-14" y="-52" width="28" height="20" rx="4" fill="#b8c0c7"/><rect x="-16" y="-54" width="32" height="5" rx="2" fill="#d5dbe0"/>',
+ gourdin:'<rect x="-2" y="-52" width="4" height="58" rx="2" fill="#a1773f"/><rect x="-24" y="-82" width="48" height="32" rx="2" fill="#fff" stroke="#333" stroke-width="2"/><text x="0" y="-61" text-anchor="middle" font-family="Impact,sans-serif" font-size="13" fill="#e23d28">NON !</text>',
+ dague:'<rect x="-5" y="-54" width="10" height="60" rx="5" fill="#d9a45a"/><path d="M-3-44l5-3M-3-32l5-3M-3-20l5-3" stroke="#a8742f" stroke-width="2"/>',
+ fouet:'<rect x="-2" y="-62" width="4" height="68" rx="2" fill="#8b6b45"/><path d="M2-60Q20-54 40-62V-42Q20-34 2-42Z" fill="#e23d28"/><path d="M10-52H32" stroke="#fff" stroke-width="3"/>',
+ marteau:'<rect x="-2.5" y="-36" width="5" height="40" rx="2" fill="#2f6b3a"/><path d="M-14-66H14L12-36H-12Z" fill="#3f7f45"/><rect x="-16" y="-70" width="32" height="6" rx="2" fill="#2f6b3a"/><path d="M-8-60V-42M0-60V-42M8-60V-42" stroke="#2f6b3a" stroke-width="2"/>',
+ trident:'<rect x="-2" y="-58" width="4" height="62" rx="2" fill="#333"/><rect x="-11" y="-60" width="22" height="4" rx="2" fill="#333"/><rect x="-2" y="2" width="30" height="5" rx="2" fill="#444"/><circle cx="2" cy="10" r="4" fill="#111"/><circle cx="26" cy="10" r="4" fill="#111"/>',
+ parapluie:'<path d="M0 6V-40" stroke="#333" stroke-width="2.5"/><path d="M0 6q0 6 5 6" stroke="#333" stroke-width="2.5" fill="none"/><path d="M-20-38Q0-66 20-38Q15-43 10-38Q5-43 0-38Q-5-43-10-38Q-15-43-20-38Z" fill="#2b4fa3"/>',
+ os:'<rect x="-3" y="-20" width="6" height="22" rx="2" fill="#444"/><rect x="-13" y="-54" width="26" height="36" rx="5" fill="#222"/><circle cy="-43" r="7" fill="#555"/><circle cy="-27" r="5" fill="#555"/>'},
+police:{
+ poele:'<rect x="-6" y="-30" width="12" height="26" rx="3" fill="#222"/><rect x="2" y="-42" width="3" height="13" fill="#222"/><rect x="-3" y="-25" width="6" height="8" fill="#5a6"/>',
+ gourdin:'<rect x="-3" y="-48" width="6" height="54" rx="3" fill="#1b1b1b"/><rect x="-11" y="-6" width="10" height="4" rx="2" fill="#1b1b1b"/>',
+ dague:'<rect x="-2" y="-8" width="14" height="8" rx="4" fill="#c0c6cc"/><circle cx="12" cy="-4" r="5" fill="#c0c6cc"/><path d="M14-12q6-6 12-2M16-16q6-8 14-4" stroke="#fff" stroke-width="2" fill="none"/>',
+ fouet:'<rect x="-3" y="-12" width="6" height="16" rx="2" fill="#444"/><path d="M0-12Q22-30 8-50Q-6-64 16-74" stroke="#e23d28" stroke-width="5" fill="none"/><path d="M0-12Q22-30 8-50Q-6-64 16-74" stroke="#fff" stroke-width="5" stroke-dasharray="6 6" fill="none"/>',
+ marteau:'<rect x="-9" y="-56" width="18" height="50" rx="8" fill="#d32f2f"/><rect x="-4" y="-64" width="8" height="10" fill="#333"/><path d="M4-62Q16-64 18-52" stroke="#333" stroke-width="3" fill="none"/>',
+ trident:'<rect x="-3" y="-14" width="6" height="18" rx="2" fill="#333"/><path d="M-5-14L-16-48H16L5-14Z" fill="#f2f2f2" stroke="#999" stroke-width="2"/>',
+ parapluie:'<rect x="-18" y="-66" width="36" height="70" rx="8" fill="#cfe6ff" fill-opacity=".55" stroke="#9fb6c9" stroke-width="2.5"/>',
+ os:'<rect x="-26" y="-62" width="52" height="38" rx="3" fill="none" stroke="#9aa0a6" stroke-width="4"/><path d="M-16-62V-24M-6-62V-24M4-62V-24M14-62V-24" stroke="#9aa0a6" stroke-width="2.5"/><rect x="-2" y="-24" width="4" height="28" fill="#9aa0a6"/>'}};
+function sprite(L,w,camp='classic'){const bw=[14,17,21][L.bulk],sd=shade(L.skin,-.18),hc=L.hair,pol=camp==='police';
+ const shirt=pol?'#26355a':L.shirt,pants=pol?'#1d2740':L.pants;
+ let hair=[`<path d="M41 30L40 14L47 21L50 8L56 18L62 6L65 18L72 10L74 22L80 18L79 30Q60 16 41 30Z" fill="${hc}"/>`,
+  `<path d="M54 18Q60 0 66 18Q60 14 54 18Z" fill="${hc}"/><rect x="55" y="6" width="10" height="14" rx="4" fill="${hc}"/>`,
+  `<ellipse cx="66" cy="22" rx="5" ry="3" fill="#fff6"/>`,
+  `<path d="M40 34Q38 12 60 12Q82 12 80 34L74 26Q60 22 46 26Z" fill="${hc}"/>`,
+  `<circle cx="46" cy="20" r="7" fill="${hc}"/><circle cx="56" cy="15" r="8" fill="${hc}"/><circle cx="67" cy="16" r="8" fill="${hc}"/><circle cx="76" cy="23" r="6" fill="${hc}"/>`][L.hs];
+ if(pol)hair=`<path d="M38 36Q37 10 60 9Q83 10 82 36Z" fill="#1c2740"/><path d="M50 18H82V38Q66 42 50 38Z" fill="#a9cbe8" fill-opacity=".45" stroke="#d8e8f5" stroke-width="1.5"/><rect x="38" y="33" width="10" height="5" rx="2" fill="#1c2740"/>`;
+ else if(camp==='manif'&&L.acc===0)hair=`<path d="M40 30Q40 8 60 8Q80 8 80 30Z" fill="${shade(L.shirt,.25)}"/><rect x="39" y="25" width="42" height="7" rx="3" fill="${shade(L.shirt,-.2)}"/><circle cx="60" cy="7" r="5" fill="#fff"/>`;
+ const scarf=camp==='manif'&&L.acc>0?`<rect x="${60-bw+2}" y="49" width="${2*bw-4}" height="9" rx="4" fill="${['#e23d28','#2b4fa3','#f4b41a'][L.acc]}"/><rect x="${60-bw+6}" y="55" width="7" height="20" rx="3" fill="${['#e23d28','#2b4fa3','#f4b41a'][L.acc]}"/>`:'';
+ const pads=pol?`<ellipse cx="${60-bw-2}" cy="58" rx="9" ry="6" fill="#1c2740"/><ellipse cx="${60+bw+2}" cy="58" rx="9" ry="6" fill="#1c2740"/><rect x="${60-bw+5}" y="64" width="${2*bw-10}" height="22" rx="4" fill="#1c2740" opacity=".55"/>`:'';
+ const mouth=['<path d="M53 45Q60 41 67 45" stroke="#3a1d12" stroke-width="2.5" fill="none" stroke-linecap="round"/>','<path d="M53 42Q60 49 67 42Z" fill="#3a1d12"/><path d="M55 43H65" stroke="#fff" stroke-width="2"/>','<path d="M54 44H66" stroke="#3a1d12" stroke-width="3" stroke-linecap="round"/>'][L.mouth];
+ const hx=60+bw+2,ws=(WSV[camp]||WSV.classic)[w]||WSV.classic[w];
+ return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="144" rx="32" ry="5" fill="#0003"/>
+ <rect x="${60-bw+2}" y="96" width="12" height="40" rx="5" fill="${pants}"/><rect x="${60+bw-14}" y="96" width="12" height="40" rx="5" fill="${pants}"/>
+ <ellipse cx="${60-bw+9}" cy="139" rx="10" ry="5" fill="#2a1d14"/><ellipse cx="${60+bw-6}" cy="139" rx="10" ry="5" fill="#2a1d14"/>
+ <rect x="${60-bw-9}" y="56" width="12" height="38" rx="6" fill="${pol?'#1f2c4a':sd}"/><circle cx="${60-bw-3}" cy="94" r="6.5" fill="${pol?'#222':sd}"/>
+ <path d="M${60-bw} 58Q60 46 ${60+bw} 58L${60+bw-2} 100Q60 106 ${60-bw+2} 100Z" fill="${shirt}"/>
+ <path d="M${60-bw+6} 60Q60 68 ${60+bw-6} 60" stroke="${shade(shirt,-.25)}" stroke-width="2" fill="none"/>${pads}
+ <rect x="${60-bw+3}" y="91" width="${2*bw-6}" height="7" fill="${pol?'#111':'#3a2a1e'}"/><rect x="56" y="90" width="8" height="9" rx="1" fill="${pol?'#c0c6cc':'#d9a520'}"/>
+ <circle cx="60" cy="34" r="19" fill="${L.skin}"/><circle cx="41.5" cy="36" r="4" fill="${sd}"/>
+ ${L.beard?`<path d="M42 38Q44 62 60 62Q76 62 78 38Q72 50 60 50Q48 50 42 38Z" fill="${hc}"/>`:''}${scarf}
+ <ellipse cx="55" cy="32" rx="4" ry="4.5" fill="#fff"/><ellipse cx="67" cy="32" rx="4" ry="4.5" fill="#fff"/><circle cx="56.5" cy="33" r="2.2" fill="#1b1b1b"/><circle cx="68.5" cy="33" r="2.2" fill="#1b1b1b"/>
+ <path d="M49 25L59 28M71 25L62 28" stroke="${shade(hc,-.2)}" stroke-width="3.2" stroke-linecap="round"/>
+ <ellipse cx="73" cy="38" rx="3" ry="4" fill="${sd}"/>${mouth}${hair}
+ ${w?`<g transform="translate(${hx} 93) rotate(38)">${ws}</g>`:''}
+ <rect x="${60+bw-5}" y="56" width="12" height="38" rx="6" fill="${pol?'#26355a':L.skin}"/><circle cx="${hx}" cy="93" r="7" fill="${pol?'#222':L.skin}"/></svg>`}
+const PETLOOK={classic:{chien:['quad','#c58b4c','#8a5a2b'],loup:['quad','#9aa0a8','#5d636b'],ours:['bear','#6b4a2f','#45301e']},
+ manif:{chien:['quad','#2e2e2e','#111111'],loup:['bird','#8a929c','#5f8f7a'],ours:['quad','#f1ebe1','#a0522d']},
+ police:{chien:['quad','#2b2420','#b07a3c'],loup:['quad','#c89a5a','#3b2a1c'],ours:['horse','#7a4a2a','#3a2618']}};
+function petSvg(id,camp='classic'){const[sh,c,d]=PETLOOK[camp][id];
+ if(sh==='bird')return `<svg viewBox="0 0 60 56" xmlns="http://www.w3.org/2000/svg"><ellipse cx="30" cy="53" rx="16" ry="3" fill="#0003"/><path d="M24 44V52M32 44V52" stroke="#d98c8c" stroke-width="2.5"/><ellipse cx="28" cy="34" rx="17" ry="12" fill="${c}"/><path d="M12 32Q2 30 4 40Q12 40 16 38Z" fill="${shade(c,-.25)}"/><path d="M18 30Q28 22 36 32Q28 40 18 30Z" fill="${shade(c,-.15)}"/><circle cx="42" cy="22" r="9" fill="${d}"/><circle cx="44" cy="18" r="7" fill="${c}"/><circle cx="47" cy="17" r="1.8" fill="#e8742a"/><circle cx="47" cy="17" r=".9" fill="#111"/><path d="M50 19L57 21L50 22Z" fill="#555"/></svg>`;
+ if(sh==='horse')return `<svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="48" cy="86" rx="34" ry="4" fill="#0003"/><path d="M16 40Q4 50 8 66" stroke="${d}" stroke-width="7" fill="none" stroke-linecap="round"/><rect x="20" y="48" width="7" height="36" rx="3" fill="${d}"/><rect x="58" y="48" width="7" height="36" rx="3" fill="${d}"/><ellipse cx="44" cy="46" rx="30" ry="15" fill="${c}"/><rect x="28" y="50" width="7" height="35" rx="3" fill="${c}"/><rect x="66" y="50" width="7" height="35" rx="3" fill="${c}"/><path d="M62 40L72 12L84 16L80 44Z" fill="${c}"/><path d="M66 38L74 10" stroke="${d}" stroke-width="5"/><ellipse cx="86" cy="22" rx="12" ry="8" transform="rotate(25 86 22)" fill="${c}"/><circle cx="80" cy="16" r="2" fill="#111"/><path d="M72 9L74 2L78 10Z" fill="${c}"/><rect x="34" y="34" width="22" height="14" rx="3" fill="#1c2740"/></svg>`;
+ const o=sh==='bear';
+ return `<svg viewBox="0 0 92 64" xmlns="http://www.w3.org/2000/svg"><ellipse cx="44" cy="60" rx="32" ry="4" fill="#0003"/>
+ ${o?'':`<path d="M18 32Q6 24 9 12" stroke="${c}" stroke-width="6" fill="none" stroke-linecap="round"/>`}
+ <rect x="22" y="40" width="8" height="18" rx="3" fill="${d}"/><rect x="50" y="40" width="8" height="18" rx="3" fill="${d}"/>
+ <ellipse cx="40" cy="36" rx="${o?28:25}" ry="${o?17:13}" fill="${c}"/>
+ <rect x="30" y="42" width="8" height="17" rx="3" fill="${c}"/><rect x="59" y="42" width="8" height="17" rx="3" fill="${c}"/>
+ ${o?`<circle cx="61" cy="13" r="5" fill="${d}"/><circle cx="74" cy="13" r="5" fill="${d}"/>`:`<path d="M58 18L60 3L69 14Z" fill="${d}"/><path d="M66 16L72 3L76 17Z" fill="${c}"/>`}
+ <circle cx="67" cy="25" r="${o?13:12}" fill="${c}"/><ellipse cx="79" cy="30" rx="9" ry="6" fill="${o?'#c9a27a':d}"/><circle cx="86" cy="28" r="2.8" fill="#1b1b1b"/>
+ <circle cx="70" cy="21" r="2.2" fill="#111"/><path d="M66 17L73 19" stroke="#111" stroke-width="2" stroke-linecap="round"/></svg>`}
+const petCls=(id,camp)=>PETLOOK[camp][id][0]==='bird'?'bird':id==='ours'?'ours':'';
+const crowd=(()=>{const r=RNG(7),c=['#e23d28','#1f6f78','#f4b41a','#7b3f99','#e07a1f','#3d5a99','#6b8e23','#ddd'];let s='';
+ for(let y=36,row=0;y<190;y+=26,row++)for(let x=(row%2)*11;x<820;x+=22){s+=`<ellipse cx="${x}" cy="${y+12}" rx="10" ry="9" fill="${shade(pick(r,c),-.35)}"/><circle cx="${x}" cy="${y-1+r()*3}" r="6.5" fill="${shade(pick(r,SKIN),-.3)}"/>`}
+ return `<svg class="crowd" viewBox="0 0 800 176" preserveAspectRatio="xMidYMid slice">${s}<rect y="150" width="800" height="26" fill="#2a1d15"/></svg>`})();
+const paris=(()=>{const r=RNG(75);let b='';
+ for(let i=0;i<7;i++){const x=i*124-30,top=78+(i%3)*12,w=120;
+  b+=`<path d="M${x} ${top}L${x+12} ${top-30}H${x+w-12}L${x+w} ${top}Z" fill="#6f7f8f"/><rect x="${x+20}" y="${top-46}" width="10" height="18" fill="#b5563c"/><rect x="${x+w-34}" y="${top-42}" width="10" height="14" fill="#b5563c"/>
+  <circle cx="${x+40}" cy="${top-14}" r="6" fill="#4d5b6a"/><circle cx="${x+80}" cy="${top-14}" r="6" fill="#4d5b6a"/>
+  <rect x="${x}" y="${top}" width="${w}" height="${250-top}" fill="${i%2?'#ece1c9':'#e4d6b9'}" stroke="#cdbb98"/>`;
+  for(let row=0;row<4;row++)for(let col=0;col<4;col++){const wx=x+12+col*27,wy=top+12+row*34;if(wy>190)continue;b+=`<rect x="${wx}" y="${wy}" width="15" height="24" fill="#3d4a5c"/><rect x="${wx}" y="${wy}" width="15" height="4" fill="#cdbb98"/>`}
+  b+=`<path d="M${x+6} ${top+70}H${x+w-6}" stroke="#222" stroke-width="3"/><path d="M${x+6} ${top+66}H${x+w-6}" stroke="#222" stroke-width="1" stroke-dasharray="2 3"/>
+  <rect x="${x+8}" y="196" width="${w-16}" height="54" fill="#3a2f2a"/><path d="M${x+4} 196H${x+w-4}L${x+w-12} 212H${x+12}Z" fill="${['#b23a2f','#2f6b4a','#2b4fa3'][i%3]}"/><path d="M${x+4} 196H${x+w-4}" stroke="#fff" stroke-width="2" stroke-dasharray="8 8"/>`}
+ let crowdP='';for(let x=0;x<820;x+=14){const y=246+r()*6;crowdP+=`<circle cx="${x}" cy="${y-12}" r="6" fill="#3c4655"/><rect x="${x-7}" y="${y-6}" width="14" height="20" rx="5" fill="#3c4655"/>`;
+  if(r()<.12)crowdP+=`<rect x="${x-1}" y="${y-40}" width="2" height="30" fill="#6b5235"/><rect x="${x-14}" y="${y-56}" width="28" height="18" fill="${pick(r,['#fff','#f4b41a','#e23d28','#9ad0f5'])}"/>`;
+  if(r()<.04)crowdP+=`<g fill="#fff" opacity=".35"><circle cx="${x}" cy="${y-40}" r="12"/><circle cx="${x+12}" cy="${y-50}" r="10"/><circle cx="${x-10}" cy="${y-52}" r="8"/></g>`}
+ return `<svg class="decor" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fc2de"/><stop offset="1" stop-color="#e8eef3"/></linearGradient><pattern id="pv" width="24" height="12" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="22" height="10" rx="3" fill="#9a9da2"/><rect x="13" y="7" width="0" height="0"/></pattern><pattern id="pv2" width="24" height="12" x="12" y="6" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="22" height="10" rx="3" fill="#a3a6ab"/></pattern></defs>
+ <rect width="800" height="400" fill="url(#sky)"/>
+ <path d="M612 20H618L634 200H624Q615 170 606 200H596Z" fill="#8796a8"/><path d="M603 110H627M600 140H630" stroke="#8796a8" stroke-width="4"/>
+ ${b}<rect x="0" y="250" width="800" height="16" fill="#bdb7ab"/>${crowdP}
+ <rect x="0" y="266" width="800" height="134" fill="#878a8f"/><rect x="0" y="266" width="800" height="134" fill="url(#pv)"/>
+ <rect x="70" y="150" width="30" height="100" fill="#2f5d50"/><path d="M66 150Q85 120 104 150Z" fill="#2f5d50"/><rect x="74" y="164" width="22" height="30" fill="#f4b41a"/><rect x="74" y="198" width="22" height="26" fill="#e23d28"/></svg>`})();
+
+/* ---------- API ---------- */
+let V=null;
+async function api(method,url,body){
+ const r=await fetch(url,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
+ let d={};try{d=await r.json()}catch(e){}
+ if(!r.ok){const err=new Error(d.error||'Erreur réseau.');err.status=r.status;throw err}return d}
+const daysLeft=end=>Math.max(0,Math.ceil((end-Date.now())/864e5));
+const other=c=>c==='manif'?'police':'manif';
+const asCamp=(b,c)=>Object.assign({},b,{camp:c});
+function setWho(){$('#who').innerHTML=V&&V.user?`<span>${esc(V.user.name)}</span><button class="ghost sm" id="logout">Déconnexion</button>`:'';
+ const lo=$('#logout');if(lo)lo.addEventListener('click',async()=>{try{await api('POST','/api/logout',{})}catch(e){}V=null;renderAuth()})}
+const fail=(sel,e)=>{const el=$(sel);if(el)el.textContent=e.message};
+
+/* ---------- écrans ---------- */
+function statRows(b){return Object.keys(STATS).map(k=>`<div class="stat"><span>${STATS[k]}</span><div class="bar"><i style="width:${Math.min(100,b.stats[k]*5)}%"></i></div><span>${b.stats[k]}</span></div>`).join('')+`<div class="stat"><span>Points de vie</span><div class="bar"><i style="width:${Math.min(100,maxHp(b)/2.5)}%;background:#3fae4a"></i></div><span>${maxHp(b)}</span></div>`}
+function items(b){const t=T(b),a=[...b.weapons.map(k=>`<div class="item w"><b>${t.w[k]}</b><small>${W[k].desc}</small></div>`),...b.skills.map(k=>`<div class="item s"><b>${t.sk[k]}</b><small>${SK[k].desc}</small></div>`),...b.pets.map(k=>`<div class="item p"><b>${t.p[k]}</b><small>Combat à tes côtés.</small></div>`)];return a.length?a.join(''):'<p class="empty">Rien pour l’instant : les poings suffiront.</p>'}
+const oppCard=(e,i,kind,left)=>`<article class="opp"><div class="ms">${sprite(e.look,e.weapons[0],e.camp)}</div><div><b>${esc(e.name)}</b><small><span class="kind ${e.bot?'':'pl'}">${e.bot?'Bot':'Joueur'}</span> Niveau ${e.level} · ${maxHp(e)} PV</small><small>For ${e.stats.force} · Agi ${e.stats.agilite} · Rap ${e.stats.rapidite} · End ${e.stats.endurance}</small><small>${[...e.weapons.map(k=>T(e).w[k]),...e.skills.map(k=>T(e).sk[k]),...e.pets.map(k=>T(e).p[k])].join(', ')||'Mains nues'}</small></div><button data-k="${kind}" data-o="${i}" ${left?'':'disabled'}>Combattre</button></article>`;
+function renderAuth(mode='login'){V=null;setWho();const demo=base(['Bastoche','Ginette','Momo','Raoul','Paulette'][Math.floor(Math.random()*5)]);
+ app.innerHTML=`<section class="hero band"><div class="hgrid"><div><h1>L'Arène des Cogneurs</h1>
+ <p class="lead">Crée ton cogneur, regarde-le se battre tout seul contre ceux des autres joueurs, et choisis comment il progresse.</p>
+ <div class="tabs" role="tablist"><button class="tab ${mode==='login'?'on':''}" data-m="login" role="tab">Connexion</button><button class="tab ${mode==='register'?'on':''}" data-m="register" role="tab">Inscription</button></div>
+ <form id="af"><label for="un">Nom d'utilisateur</label><input id="un" autocomplete="username" maxlength="20" required>
+ <label for="pw">Mot de passe${mode==='register'?' (8 caractères minimum)':''}</label><input id="pw" type="password" autocomplete="${mode==='register'?'new-password':'current-password'}" minlength="${mode==='register'?8:1}" required>
+ <div class="row" style="margin-top:16px"><button>${mode==='register'?'Créer mon compte':'Entrer dans l’arène'}</button></div><p id="err" class="err"></p></form>
+ ${mode==='register'?'<p class="note2">Pas d’e-mail demandé pour l’instant : note bien ton mot de passe, on ne pourra pas le récupérer.</p>':''}</div>
+ <div class="pedestal"><div class="big">${sprite(demo.look,demo.weapons[0])}</div></div></div></section>`;
+ app.querySelectorAll('[data-m]').forEach(x=>x.addEventListener('click',()=>renderAuth(x.dataset.m)));
+ $('#af').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter||$('#af button');btn.disabled=true;
+  try{V=await api('POST','/api/'+(mode==='register'?'register':'login'),{username:$('#un').value.trim(),password:$('#pw').value});route()}catch(er){fail('#err',er)}finally{btn.disabled=false}})}
+function renderCreate(){setWho();
+ app.innerHTML=`<section class="hero band"><div class="hgrid"><div><h1>Ton cogneur</h1>
+ <p class="lead">Tape un nom : il décide de tout. Tête, muscles, premier atout… Chaque nom est unique dans l'arène : s'il est déjà pris, essaie une variante.</p>
+ <form id="cf"><label for="nm">Nom de ton cogneur</label><div class="row"><input id="nm" maxlength="16" autocomplete="off" placeholder="Ex. : Bastoche"><button>Créer mon cogneur</button></div><p id="err" class="err"></p></form>
+ <div id="pvs"></div></div><div class="pedestal"><div class="big" id="pv"></div><div class="pets" id="pvp"></div></div></div></section>`;
+ const nm=$('#nm'),upd=()=>{const b=base(nm.value.trim()||'Bastoche');$('#pv').innerHTML=sprite(b.look,b.weapons[0]);$('#pvp').innerHTML=b.pets.map(p=>`<div>${petSvg(p)}</div>`).join('');$('#pvs').innerHTML=`<h3>${esc(b.name)} · niveau 1</h3>${statRows(b)}<h3>Atout de départ</h3><div class="items">${items(b)}</div>`};
+ nm.addEventListener('input',upd);upd();
+ $('#cf').addEventListener('submit',async e=>{e.preventDefault();const v=nm.value.trim();
+  if(!/^[\p{L}\d][\p{L}\d' -]{1,15}$/u.test(v)){$('#err').textContent='2 à 16 caractères : lettres, chiffres, espaces ou tirets.';return}
+  try{V=await api('POST','/api/brute',{name:v});route()}catch(er){fail('#err',er)}})}
+function eventBand(){const ev=V.event,b=V.brute;if(!ev)return'';const d=daysLeft(ev.end);
+ const mult=ev.camp?(ev.underdog===ev.camp?ev.underdogXp:ev.xp):ev.xp,sc=ev.scores,tot=sc.manif+sc.police,pm=tot?sc.manif/tot*100:50;
+ const gauge=`<div class="gauge"><div class="gl"><span>Manifestants · ${sc.manif} pts</span><span>${sc.police} pts · Forces de l\u2019ordre</span></div><div class="gb" role="img" aria-label="Score : manifestants ${sc.manif}, forces de l\u2019ordre ${sc.police}"><i style="width:${pm}%;background:#e23d28"></i><i style="flex:1;background:#2b4fa3"></i></div><small>Chaque victoire rapporte un point à son camp. À la fin, le camp gagnant reçoit +${ev.winReward} XP. ${ev.players.manif} manifestant${ev.players.manif>1?'s':''} et ${ev.players.police} membre${ev.players.police>1?'s':''} des forces de l\u2019ordre engagés.</small></div>`;
+ const head=`<div class="tags"><span class="hot">Événement temporaire</span><span>XP ×${mult}</span><span>+${ev.fpd} combats par jour</span><span>Fin dans ${d} jour${d>1?'s':''}</span></div><h2>${esc(ev.title)}</h2>${gauge}`;
+ if(!ev.camp)return `<section class="band event"><div class="wrap">${head}<p>Les pavés chauffent ! Choisis ton camp pour toute la durée de l'événement. Ton cogneur garde son niveau et son arsenal, mais change de tenue, et chaque combat rapporte deux fois plus d'XP.</p>
+ <div class="camps">${['manif','police'].map(c=>{const x=asCamp(b,c);return `<button class="camp" data-camp="${c}"><div>${sprite(x.look,x.weapons[0],c)}</div><div><b>${NAMES[c].camp}</b><span>${c==='manif'?'Casseroles, pancartes et pigeons parisiens.':'Matraques, mégaphones et barrières Vauban.'}</span>${ev.underdog===c?`<span class="ud">Camp en minorité : XP ×${ev.underdogXp}</span>`:''}</div></button>`}).join('')}</div>
+ <p class="err" id="cerr"></p><p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`;
+ return `<section class="band event"><div class="wrap">${head}<div class="h2row"><p>Tu défiles côté <b>${NAMES[ev.camp].camp}</b>. Face à toi : ${NAMES[other(ev.camp)].camp.toLowerCase()}.</p><span class="pill">${ev.fightsLeft}/${ev.fpd} combats bonus</span></div>
+ <div class="opps">${ev.opps.map((o,i)=>o?oppCard(o,i,'ev',ev.fightsLeft&&!V.pending):'').join('')}</div><p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`}
+function renderCell(){setWho();const b=V.brute,n=V.need;
+ app.innerHTML=`<section class="hero band cell"><div class="hgrid"><div class="pedestal"><div class="big">${sprite(b.look,b.weapons[0])}</div><div class="pets">${b.pets.map(p=>`<div>${petSvg(p)}</div>`).join('')}</div></div>
+ <div><h1>${esc(b.name)}</h1><p class="sub">Niveau ${b.level} · ${b.wins} victoire${b.wins>1?'s':''} · ${b.losses} défaite${b.losses>1?'s':''}</p>
+ <div class="stat"><span>Expérience</span><div class="xp"><i style="width:${V.xp/n*100}%"></i></div><span>${V.xp}/${n}</span></div>
+ ${statRows(b)}<h3>Arsenal</h3><div class="items">${items(b)}</div>${V.trophies&&V.trophies.length?`<h3>Événements</h3><div class="troph">${V.trophies.map(t=>`<span>${t.won?'Victoire':'Participation'} · ${esc(t.title)} · ${t.camp==='manif'?'Manifestant·e':'Forces de l\u2019ordre'}</span>`).join('')}</div>`:''}</div></div></section>
+ ${eventBand()}
+ <section class="band"><div class="wrap"><div class="h2row"><h2>Arène classique</h2><span class="pill">${V.fightsLeft}/${V.fpd} combats aujourd'hui</span></div>
+ <p class="err" id="ferr"></p>
+ <div class="opps">${V.opps.map((o,i)=>o?oppCard(o,i,'ar',V.fightsLeft&&!V.pending):'').join('')}</div>
+ ${V.fightsLeft?'':'<p class="empty">Ton cogneur est épuisé. Les combats reviennent demain (minuit, heure de Paris).</p>'}
+ <div class="two"><div><h3>Derniers combats</h3><ul class="hist">${V.hist.length?V.hist.map(h=>`<li><span class="tag ${h.won?'':'l'}">${h.won?'Victoire':'Défaite'}</span>${h.ev?'<span class="tag e">Manif</span>':''}${h.mine?'contre':'<span class="tag d">Défense</span> attaqué par'} ${esc(h.opp)} (niv. ${h.lvl})${h.mine?` · +${h.xp} XP`:''} <button class="ghost sm" data-r="${h.id}">Revoir</button></li>`).join(''):'<li class="empty">Aucun combat pour l’instant.</li>'}</ul></div>
+ <div><h3>Classement</h3><ol class="rank" id="top"><li class="empty">Chargement…</li></ol></div></div></div></section>
+ ${V.pending?`<div class="modal"><div class="mbox"><h2>Niveau ${b.level} !</h2><p>Choisis ce que ${esc(b.name)} apprend :</p><div class="choices">${V.pending.map((o,i)=>{const[t,d]=describe(o,b);return `<button class="choice" data-c="${i}"><b>${t}</b><span>${d}</span></button>`}).join('')}</div></div></div>`:''}`;
+ app.querySelectorAll('[data-o]').forEach(x=>x.addEventListener('click',()=>fight(x.dataset.k,+x.dataset.o,x)));
+ app.querySelectorAll('[data-r]').forEach(x=>x.addEventListener('click',async()=>{try{play(await api('GET','/api/replay?id='+x.dataset.r))}catch(er){fail('#ferr',er)}}));
+ app.querySelectorAll('[data-camp]').forEach(x=>x.addEventListener('click',async()=>{try{V=await api('POST','/api/camp',{camp:x.dataset.camp});renderCell()}catch(er){fail('#cerr',er)}}));
+ app.querySelectorAll('[data-c]').forEach(x=>x.addEventListener('click',async()=>{try{V=await api('POST','/api/levelup',{choice:+x.dataset.c});renderCell()}catch(er){alertBox(er.message)}}));
+ api('GET','/api/top').then(rows=>{const el=$('#top');if(el)el.innerHTML=rows.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>niv. ${r.level}</span></li>`).join('')||'<li class="empty">Personne encore.</li>'}).catch(()=>{});
+ if(V.news){alertBox(V.news);V.news=null}
+ scrollTo(0,0)}
+function alertBox(msg){const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="mbox"><p>${esc(msg)}</p><button>OK</button></div>`;document.body.append(d);d.querySelector('button').addEventListener('click',()=>d.remove())}
+async function fight(kind,idx,btn){if(btn)btn.disabled=true;
+ try{play(await api('POST','/api/fight',{kind,idx}))}catch(er){fail(kind==='ev'?'#cerr':'#ferr',er);if(btn)btn.disabled=false;if(er.status===409||er.status===429){V=await api('GET','/api/me');renderCell()}}}
+
+/* ---------- combat (rejoué à partir de la graine envoyée par le serveur) ---------- */
+function play(data){const{A,B,seed,won,gain}=data,isEv=data.ev,{F,ev}=simulate(A,B,RNG(seed));
+ app.innerHTML=`<section class="band"><div class="wrap"><div class="bars"><div class="hpb"><b>${esc(A.name)}</b><div class="bar"><i id="hp0"></i></div><span id="hv0"></span></div><div class="vs">VS</div><div class="hpb r"><b>${esc(B.name)}</b><div class="bar"><i id="hp1"></i></div><span id="hv1"></span></div></div>
+ <div class="arena ${isEv?'paris':''}" id="arena">${isEv?paris:crowd}${F.map(f=>`<div class="f ${f.kind} ${f.kind==='pet'?petCls(f.pet,f.b.camp||'classic'):''} ${f.side?'r':''}" id="f${f.i}" style="left:${f.x}%">${f.kind==='pet'?'<div class="mini"><i></i></div>':''}<div class="spr">${f.kind==='brute'?sprite(f.b.look,null,f.b.camp):petSvg(f.pet,f.b.camp||'classic')}</div></div>`).join('')}</div>
+ <div class="ctl"><button id="sp" class="ghost">Vitesse ×1</button><button id="skip" class="ghost">Passer</button></div><ol class="log" id="log"></ol></div></section>`;
+ const arena=$('#arena'),log=$('#log'),el=i=>$('#f'+i),nm=f=>esc(f.kind==='pet'?`${f.name} de ${f.owner}`:f.name),wn=(f,w)=>T(f.b).w[w];
+ let speed=1,skip=false;const D=ms=>ms/speed,sleep=ms=>skip?Promise.resolve():new Promise(r=>setTimeout(r,D(ms)));
+ $('#sp').addEventListener('click',e=>{speed=speed>=4?1:speed*2;e.target.textContent='Vitesse ×'+speed});
+ $('#skip').addEventListener('click',()=>{skip=true});
+ const setHp=(f,hp)=>{const p=hp/f.max*100+'%';if(f.kind==='brute'){$('#hp'+f.side).style.width=p;$('#hv'+f.side).textContent=`${hp} / ${f.max} PV`}else el(f.i).querySelector('.mini i').style.width=p};
+ F.forEach(f=>setHp(f,f.max));
+ const say=t=>{const li=document.createElement('li');li.innerHTML=t;log.prepend(li)};
+ const float=(f,txt,cls)=>{if(skip)return;const d=document.createElement('div');d.className='num '+cls;d.textContent=txt;d.style.left=f.x+'%';d.style.bottom=f.kind==='brute'?'46%':'22%';arena.append(d);
+  d.animate([{transform:'translate(-50%,0)',opacity:1},{transform:'translate(-50%,-50px)',opacity:0}],{duration:D(900),easing:'ease-out'}).finished.then(()=>d.remove(),()=>d.remove())};
+ const mv=(e,frames,ms)=>skip?Promise.resolve():e.animate(frames.map(dx=>({transform:`translateX(calc(-50% + ${dx}px))`})),{duration:D(ms),easing:'ease-in-out'}).finished.catch(()=>{});
+ const wsvg=(f,w)=>`<svg viewBox="-30 -80 60 90">${((WSV[f.b.camp]||WSV.classic)[w])||WSV.classic[w]}</svg>`;
+ const drop=(f,w,x)=>{const d=document.createElement('div');d.className='drop';d.style.left=x+'%';d.style.bottom=(3+Math.random()*5)+'%';d.innerHTML=wsvg(f,w);arena.insertBefore(d,arena.querySelector('.f'))};
+ const flash=e=>{if(!skip)e.querySelector('.spr').animate([{filter:'brightness(2.6) saturate(0)'},{filter:'none'}],{duration:D(260)})};
+ async function attack(a,b,react){const dx=(b.x-a.x-(a.side?-9:9))*arena.clientWidth/100;const go=mv(el(a.i),[0,dx,dx,0],520);await sleep(230);react();await go}
+ async function show(e){const a=F[e.a],b=F[e.b];
+  if(e.t==='weapon'){if(e.old)drop(a,e.old,a.x);el(a.i).querySelector('.spr').innerHTML=sprite(a.b.look,e.w,a.b.camp);say(e.old?`${nm(a)} jette ${wn(a,e.old)} et dégaine : ${wn(a,e.w)}.`:`${nm(a)} dégaine : ${wn(a,e.w)}.`);await sleep(350)}
+  else if(e.t==='throw'){el(a.i).querySelector('.spr').innerHTML=sprite(a.b.look,null,a.b.camp);
+   if(!skip){const p=document.createElement('div');p.className='proj';p.innerHTML=wsvg(a,e.w);arena.append(p);
+    await p.animate([{left:a.x+'%',transform:'translateX(-50%) rotate(0)'},{left:b.x+'%',transform:`translateX(-50%) rotate(${a.side?-720:720}deg)`}],{duration:D(450),easing:'ease-in'}).finished.catch(()=>{});p.remove()}
+   drop(a,e.w,b.x+(a.side?6:-6));
+   if(e.miss){float(b,'Raté','m');say(`${nm(a)} lance ${wn(a,e.w)} sur ${nm(b)}… raté !`)}
+   else{setHp(b,e.hp);flash(el(b.i));float(b,'−'+e.dmg,'');say(`${nm(a)} lance ${wn(a,e.w)} sur ${nm(b)} : −${e.dmg}`)}await sleep(200)}
+  else if(e.t==='disarm'){el(b.i).querySelector('.spr').innerHTML=sprite(b.b.look,null,b.b.camp);drop(b,e.w,b.x+(b.side?8:-8));float(b,'Désarmé !','m');say(`${nm(a)} désarme ${nm(b)}, qui perd ${wn(b,e.w)} !`);await sleep(300)}
+  else if(e.t==='hit'){await attack(a,b,()=>{setHp(b,e.hp);flash(el(b.i));mv(el(b.i),[0,b.side?10:-10,b.side?-4:4,0],220);float(b,'−'+e.dmg,e.crit?'c':'')});say(`${nm(a)} frappe ${nm(b)}${e.w?' ('+wn(a,e.w)+')':''} : −${e.dmg}${e.crit?' — coup critique !':''}`);await sleep(120)}
+  else if(e.t==='dodge'){await attack(a,b,()=>{mv(el(b.i),[0,b.side?40:-40,0],300);float(b,'Esquive','m')});say(`${nm(b)} esquive l'attaque de ${nm(a)}.`);await sleep(100)}
+  else if(e.t==='block'){await attack(a,b,()=>float(b,'Bloqué','m'));say(`${nm(b)} bloque le coup de ${nm(a)} !`);await sleep(100)}
+  else if(e.t==='counter'){say(`${nm(a)} contre-attaque !`);float(a,'Riposte !','m');await sleep(150)}
+  else if(e.t==='frenzy'){say(`${nm(a)} : ${T(a.b).sk.frenesie} !`);float(a,'Encore !','m');await sleep(150)}
+  else if(e.t==='heal'){setHp(a,e.hp);float(a,'+'+e.amt,'h');say(`${nm(a)} : ${T(a.b).sk.souffle}, +${e.amt} PV.`);await sleep(500)}
+  else if(e.t==='ko'){const x=el(a.i);x.getAnimations().forEach(n=>n.cancel());x.classList.add('ko');say(`<b>${nm(a)} ${a.kind==='brute'?T(a.b).ko:'est K.O.'}</b>`);await sleep(500)}
+  else if(e.t==='end'){const r=document.createElement('div');r.className='result';
+   const txt=data.replay?`Vainqueur : ${esc(won?A.name:B.name)}`:`+${gain} XP${isEv?` (bonus ×${data.mult})`:''}${data.leveled?' · Niveau supérieur ! Un bonus t’attend.':''}`;
+   r.innerHTML=`<div><b>${data.replay?'Rediffusion':won?'Victoire !':'Défaite…'}</b><p>${txt}</p><button id="back">Retour à la cellule</button></div>`;arena.append(r);
+   $('#back').addEventListener('click',async()=>{try{V=await api('GET','/api/me')}catch(er){}route()})}}
+ scrollTo(0,0);(async()=>{for(const e of ev)await show(e)})()}
+
+function route(){if(!V)return renderAuth();if(!V.brute)return renderCreate();renderCell()}
+api('GET','/api/me').then(v=>{V=v;route()}).catch(()=>renderAuth());
+}
+</script>
+</body>
+</html>
