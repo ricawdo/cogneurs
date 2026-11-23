@@ -307,7 +307,7 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  <p class="err" id="ferr"></p>
  <div class="opps">${V.opps.map((o,i)=>o?oppCard(o,i,'ar',V.fightsLeft&&!V.pending):'').join('')}</div>
  ${V.fightsLeft?'':'<p class="cdline">Ton cogneur est épuisé. Prochains combats dans <b class="cd"></b></p>'}
- <p class="note2">Tu ne peux affronter chaque adversaire qu\u2019une fois par jour dans chaque arène. En défense, tu gagnes +${V.defenseXp} XP chaque fois qu\u2019un joueur t\u2019attaque et perd (${V.defenseXpMax} max par jour · aujourd\u2019hui : ${V.defXpToday}/${V.defenseXpMax}).</p>
+ <p class="note2">Tu ne peux affronter chaque adversaire qu\u2019une fois par jour dans chaque arène. En défense, tu gagnes +${V.defenseXp} XP chaque fois qu\u2019un joueur t\u2019attaque, que tu gagnes ou que tu perdes (${V.defenseXpMax} max par jour · aujourd\u2019hui : ${V.defXpToday}/${V.defenseXpMax}).</p>
  <div class="two"><div><h3>Derniers combats</h3><ul class="hist">${V.hist.length?V.hist.map(h=>`<li><span class="tag ${h.won?'':'l'}">${h.won?'Victoire':'Défaite'}</span>${h.ev?'<span class="tag e">Manif</span>':''}${h.mine?'contre':'<span class="tag d">Défense</span> attaqué par'} ${esc(h.opp)} (niv. ${h.lvl})${h.mine||h.xp?` · +${h.xp} XP`:''} <button class="ghost sm" data-r="${h.id}">Revoir</button></li>`).join(''):'<li class="empty">Aucun combat pour l’instant.</li>'}</ul></div>
  <div><h3>Classement</h3><ol class="rank" id="top"><li class="empty">Chargement…</li></ol><h3>Meilleurs maîtres</h3><ol class="rank" id="topm"><li class="empty">Chargement…</li></ol></div></div></div></section>
  ${pupilBand()}

@@ -82,6 +82,7 @@ const assert = require('node:assert');
     if (r.data.B.name === 'Fred') { metFred++; assert.equal(r.data.won, false, 'Fred surpuissant gagne'); }
   }
   assert.equal(metFred, 1, 'Fred affronté exactement une fois');
+  r = await b('GET', '/api/me'); assert.ok(r.data.hist.filter(x => !x.mine).every(x => x.xp === 1) || r.data.defXpToday === 3, 'défense perdue ou gagnée : +1 XP');
   r = await f('GET', '/api/me'); assert.equal(r.data.xp, 1, 'XP de défense'); assert.equal(r.data.defXpToday, 1);
   assert.ok(r.data.hist.some(x => !x.mine && x.won && x.xp === 1), 'défense gagnée visible avec +1 XP');
   await pg.pg.query(`update brutes set state = jsonb_set(jsonb_set(state, '{defDay}', '"${today}"'), '{defXp}', '3') where name = 'Fred'`);
