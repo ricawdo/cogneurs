@@ -290,7 +290,7 @@ function eventBand(){const ev=V.event,b=V.brute;if(!ev)return'';const d=daysLeft
 function pupilBand(){const b=V.brute,link=`${location.origin}/?maitre=${encodeURIComponent(b.name)}`,rw=Object.entries(V.pupilRewards).map(([l,x])=>`niveau ${l} : +${x} XP`).join(', ');
  return `<section class="band pupils"><div class="wrap"><div class="h2row"><h2>Mes élèves</h2><span class="pill">${V.pupils.length} élève${V.pupils.length>1?'s':''}</span></div>
  <p>Partage ton lien : chaque ami qui crée son cogneur avec devient ton élève. Il reçoit ${V.pupilBonus} combats bonus le premier jour, et toi tu gagnes de l\u2019XP quand il progresse (${rw}).</p>
- <div class="row"><input id="plink" readonly value="${esc(link)}" aria-label="Ton lien de maître"><button id="cplink">Copier le lien</button></div>
+ <div class="row"><input id="plink" readonly value="${esc(link)}" aria-label="Ton lien de maître"><button id="cplink">Copier le lien</button><button id="shlink" class="ghost">Partager</button></div><p class="note2" id="cpmsg" role="status"></p>
  ${V.pupils.length?`<ul class="plist">${V.pupils.map(p=>`<li><b>${esc(p.name)}</b><span>niv. ${p.level}</span></li>`).join('')}</ul>`:'<p class="empty">Pas encore d\u2019élève. Envoie ton lien à tes amis !</p>'}</div></section>`}
 function renderCell(){setWho();const b=V.brute,n=V.need;
  app.innerHTML=`<section class="hero band cell"><div class="hgrid"><div class="pedestal"><div class="big">${sprite(b.look,b.weapons[0])}</div><div class="pets">${b.pets.map(p=>`<div>${petSvg(p)}</div>`).join('')}</div></div>
@@ -314,7 +314,14 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  if(MASTER&&!renderCell.seen){renderCell.seen=1;history.replaceState(null,'',location.pathname);
   alertBox(MASTER.toLowerCase()===b.name.toLowerCase()?['C\u2019est ton lien d\u2019invitation : il fonctionne !','Comme tu es déjà connecté, il t\u2019amène simplement à ta cellule. Tes amis, eux, verront l\u2019invitation et deviendront tes élèves en s\u2019inscrivant. Pour voir ce qu\u2019ils verront, ouvre le lien dans une fenêtre de navigation privée.']:[`Ce lien d\u2019invitation de ${MASTER} sert aux nouveaux joueurs.`,'Tu as déjà un cogneur, donc il ne peut pas devenir élève.'])}
  if(V.news){alertBox(V.news);V.news=null}
- const cp=$('#cplink');if(cp)cp.addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#plink').value);cp.textContent='Lien copié !'}catch(e){$('#plink').select();cp.textContent='Sélectionné : fais Ctrl+C'}setTimeout(()=>cp.textContent='Copier le lien',2500)});
+ const cp=$('#cplink'),pl=$('#plink'),sh=$('#shlink');
+ const copyLink=async()=>{const v=pl.value;let ok=false;
+  try{await navigator.clipboard.writeText(v);ok=true}catch(e){}
+  if(!ok){pl.focus();pl.select();pl.setSelectionRange(0,v.length);try{ok=document.execCommand('copy')}catch(e){}}
+  $('#cpmsg').textContent=ok?`Copié : ${v}`:'La copie automatique est bloquée ici : le lien est sélectionné, fais Ctrl+C (ou Cmd+C).';};
+ if(cp)cp.addEventListener('click',copyLink);
+ if(pl)pl.addEventListener('focus',()=>pl.select());
+ if(sh){if(navigator.share)sh.addEventListener('click',()=>navigator.share({title:'L\u2019Arène des Cogneurs',text:'Viens être mon élève dans l\u2019Arène des Cogneurs !',url:pl.value}).catch(()=>{}));else sh.remove()}
  scrollTo(0,0)}
 function alertBox(msg){const d=document.createElement('div');d.className='modal';d.innerHTML=`<div class="mbox">${[].concat(msg).map(m=>`<p>${esc(m)}</p>`).join('')}<button>OK</button></div>`;document.body.append(d);d.querySelector('button').addEventListener('click',()=>d.remove())}
 async function fight(kind,idx,btn){if(btn)btn.disabled=true;
