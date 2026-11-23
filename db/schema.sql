@@ -43,6 +43,7 @@ create table if not exists fights (
   seed bigint not null,
   won boolean not null,
   xp int not null,
+  def_xp int not null default 0,
   event text,
   created bigint not null
 );

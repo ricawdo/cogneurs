@@ -67,6 +67,28 @@ const assert = require('node:assert');
   r = await a('GET', '/api/me'); assert.ok(r.data.news.some(n => n.includes('niveau 3 : +3 XP')), JSON.stringify(r.data.news));
   assert.ok(r.data.brute.level > lvlBefore || r.data.xp === xpBefore + 3, 'XP du maître');
   r = await a('GET', '/api/top'); assert.equal(r.data.masters[0].name, 'Bastoche'); assert.equal(r.data.masters[0].pupils, 1);
+  // Pas deux fois le même adversaire par jour, et XP de défense
+  const today = new Date().toLocaleDateString('fr-CA', { timeZone: 'Europe/Paris' });
+  const f = client('10.0.0.11'), g = client('10.0.0.12'), h = client('10.0.0.13');
+  await f('POST', '/api/register', { username: 'fred', password: 'motdepasse5' }); await f('POST', '/api/brute', { name: 'Fred' });
+  await pg.pg.query(`update brutes set level = 1, data = jsonb_set(jsonb_set(data, '{stats}', '{"force":60,"agilite":60,"rapidite":60,"endurance":60}'), '{level}', '1') where name = 'Fred'`);
+  await g('POST', '/api/register', { username: 'gaby', password: 'motdepasse6' }); await g('POST', '/api/brute', { name: 'Gaby' });
+  const seen = new Set(); let metFred = 0;
+  for (let i = 0; i < 6; i++) {
+    r = await g('GET', '/api/me'); if (r.data.pending) await g('POST', '/api/levelup', { choice: 0 });
+    r = await g('GET', '/api/me'); const idx = r.data.opps.findIndex(o => o.name === 'Fred'); const k = idx < 0 ? 0 : idx;
+    r = await g('POST', '/api/fight', { kind: 'ar', idx: k }); assert.equal(r.status, 200, JSON.stringify(r.data));
+    assert.ok(!seen.has(r.data.B.name), 'adversaire déjà affronté : ' + r.data.B.name); seen.add(r.data.B.name);
+    if (r.data.B.name === 'Fred') { metFred++; assert.equal(r.data.won, false, 'Fred surpuissant gagne'); }
+  }
+  assert.equal(metFred, 1, 'Fred affronté exactement une fois');
+  r = await f('GET', '/api/me'); assert.equal(r.data.xp, 1, 'XP de défense'); assert.equal(r.data.defXpToday, 1);
+  assert.ok(r.data.hist.some(x => !x.mine && x.won && x.xp === 1), 'défense gagnée visible avec +1 XP');
+  await pg.pg.query(`update brutes set state = jsonb_set(jsonb_set(state, '{defDay}', '"${today}"'), '{defXp}', '3') where name = 'Fred'`);
+  await h('POST', '/api/register', { username: 'hugo', password: 'motdepasse7' }); await h('POST', '/api/brute', { name: 'Hugo' });
+  r = await h('GET', '/api/me'); const fi = r.data.opps.findIndex(o => o.name === 'Fred'); assert.ok(fi >= 0, 'Fred proposé à Hugo');
+  r = await h('POST', '/api/fight', { kind: 'ar', idx: fi }); assert.equal(r.data.won, false);
+  r = await f('GET', '/api/me'); assert.equal(r.data.xp, 1, 'plafond de défense respecté');
   r = await a('POST', '/api/logout', {}); r = await a('GET', '/api/me'); assert.equal(r.status, 401);
   console.log(`OK — rejeu identique, adversaire joueur vu : ${sawPlayer}, défenses de Bob : ${defs}, combats parallèles acceptés : ${okCount}`);
   server.close(); await require('../lib/app.js').close(); await pg.stop(); process.exit(0);

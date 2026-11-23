@@ -129,6 +129,7 @@ button.sm{min-height:36px;padding:4px 12px;font-size:14px}
 .invite{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-weight:700;max-width:52ch}
 .pupils{background:color-mix(in srgb,var(--field) 22%,var(--bg))}.pupils p{max-width:70ch}
 .plist{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}.plist li{display:flex;justify-content:space-between;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:8px 12px}
+.cdline{font-weight:800;font-size:18px;margin:16px 0 0}.cdline .cd{font-variant-numeric:tabular-nums;color:var(--red)}.event .cdline .cd{color:#ffd23f}
 @media(max-width:700px){#who span{display:none}.hgrid{grid-template-columns:minmax(0,1fr)}.pedestal{min-height:260px;order:-1}.cell .pedestal{order:0}.arena{aspect-ratio:16/11}.f{width:20%}.f.pet{width:11%}.f.pet.ours{width:15%}.f.pet.bird{width:8%}.vs{font-size:22px}.hpb b{font-size:17px}.camp{grid-template-columns:80px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.f .spr,.hpb .bar i{transition:none}}
 </style>
@@ -237,6 +238,10 @@ const paris=(()=>{const r=RNG(75);let b='';
 
 /* ---------- API ---------- */
 let V=null;
+/* Temps restant avant minuit, heure de Paris (remise à zéro des combats) */
+function untilReset(){const p=Object.fromEntries(new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,+x.value]));return 86400-(p.hour*3600+p.minute*60+p.second)}
+const fmtCd=s=>{const h=Math.floor(s/3600),m=Math.floor(s%3600/60),c=s%60;return (h?h+' h ':'')+String(m).padStart(h?2:1,'0')+' min '+String(c).padStart(2,'0')+' s'};
+let cdTimer=null;function startCountdown(){clearInterval(cdTimer);const tick=()=>{const els=document.querySelectorAll('.cd');if(!els.length){clearInterval(cdTimer);return}const s=untilReset();els.forEach(e=>e.textContent=fmtCd(s));if(s<=1){clearInterval(cdTimer);setTimeout(async()=>{try{V=await api('GET','/api/me');route()}catch(e){}},2500)}};tick();cdTimer=setInterval(tick,1000)}
 const MASTER=(new URLSearchParams(location.search).get('maitre')||'').trim().slice(0,16);
 async function api(method,url,body){
  const r=await fetch(url,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'});
@@ -286,7 +291,7 @@ function eventBand(){const ev=V.event,b=V.brute;if(!ev)return'';const d=daysLeft
  <div class="camps">${['manif','police'].map(c=>{const x=asCamp(b,c);return `<button class="camp" data-camp="${c}"><div>${sprite(x.look,x.weapons[0],c)}</div><div><b>${NAMES[c].camp}</b><span>${c==='manif'?'Casseroles, pancartes et pigeons parisiens.':'Matraques, mégaphones et barrières Vauban.'}</span>${ev.underdog===c?`<span class="ud">Camp en minorité : XP ×${ev.underdogXp}</span>`:''}</div></button>`}).join('')}</div>
  <p class="err" id="cerr"></p><p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`;
  return `<section class="band event"><div class="wrap">${head}<div class="h2row"><p>Tu défiles côté <b>${NAMES[ev.camp].camp}</b>. Face à toi : ${NAMES[other(ev.camp)].camp.toLowerCase()}.</p><span class="pill">${ev.fightsLeft}/${ev.fpd} combats bonus</span></div>
- <div class="opps">${ev.opps.map((o,i)=>o?oppCard(o,i,'ev',ev.fightsLeft&&!V.pending):'').join('')}</div><p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`}
+ <div class="opps">${ev.opps.map((o,i)=>o?oppCard(o,i,'ev',ev.fightsLeft&&!V.pending):'').join('')}</div>${ev.fightsLeft?'':'<p class="cdline">Combats bonus épuisés. Retour dans <b class="cd"></b></p>'}<p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`}
 function pupilBand(){const b=V.brute,link=`${location.origin}/?maitre=${encodeURIComponent(b.name)}`,rw=Object.entries(V.pupilRewards).map(([l,x])=>`niveau ${l} : +${x} XP`).join(', ');
  return `<section class="band pupils"><div class="wrap"><div class="h2row"><h2>Mes élèves</h2><span class="pill">${V.pupils.length} élève${V.pupils.length>1?'s':''}</span></div>
  <p>Partage ton lien : chaque ami qui crée son cogneur avec devient ton élève. Il reçoit ${V.pupilBonus} combats bonus le premier jour, et toi tu gagnes de l\u2019XP quand il progresse (${rw}).</p>
@@ -301,8 +306,9 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  <section class="band"><div class="wrap"><div class="h2row"><h2>Arène classique</h2><span class="pill">${V.fightsLeft} combat${V.fightsLeft>1?'s':''} restant${V.fightsLeft>1?'s':''} aujourd'hui</span></div>
  <p class="err" id="ferr"></p>
  <div class="opps">${V.opps.map((o,i)=>o?oppCard(o,i,'ar',V.fightsLeft&&!V.pending):'').join('')}</div>
- ${V.fightsLeft?'':'<p class="empty">Ton cogneur est épuisé. Les combats reviennent demain (minuit, heure de Paris).</p>'}
- <div class="two"><div><h3>Derniers combats</h3><ul class="hist">${V.hist.length?V.hist.map(h=>`<li><span class="tag ${h.won?'':'l'}">${h.won?'Victoire':'Défaite'}</span>${h.ev?'<span class="tag e">Manif</span>':''}${h.mine?'contre':'<span class="tag d">Défense</span> attaqué par'} ${esc(h.opp)} (niv. ${h.lvl})${h.mine?` · +${h.xp} XP`:''} <button class="ghost sm" data-r="${h.id}">Revoir</button></li>`).join(''):'<li class="empty">Aucun combat pour l’instant.</li>'}</ul></div>
+ ${V.fightsLeft?'':'<p class="cdline">Ton cogneur est épuisé. Prochains combats dans <b class="cd"></b></p>'}
+ <p class="note2">Tu ne peux affronter chaque adversaire qu\u2019une fois par jour dans chaque arène. En défense, tu gagnes +${V.defenseXp} XP chaque fois qu\u2019un joueur t\u2019attaque et perd (${V.defenseXpMax} max par jour · aujourd\u2019hui : ${V.defXpToday}/${V.defenseXpMax}).</p>
+ <div class="two"><div><h3>Derniers combats</h3><ul class="hist">${V.hist.length?V.hist.map(h=>`<li><span class="tag ${h.won?'':'l'}">${h.won?'Victoire':'Défaite'}</span>${h.ev?'<span class="tag e">Manif</span>':''}${h.mine?'contre':'<span class="tag d">Défense</span> attaqué par'} ${esc(h.opp)} (niv. ${h.lvl})${h.mine||h.xp?` · +${h.xp} XP`:''} <button class="ghost sm" data-r="${h.id}">Revoir</button></li>`).join(''):'<li class="empty">Aucun combat pour l’instant.</li>'}</ul></div>
  <div><h3>Classement</h3><ol class="rank" id="top"><li class="empty">Chargement…</li></ol><h3>Meilleurs maîtres</h3><ol class="rank" id="topm"><li class="empty">Chargement…</li></ol></div></div></div></section>
  ${pupilBand()}
  ${V.pending?`<div class="modal"><div class="mbox"><h2>Niveau ${b.level} !</h2><p>Choisis ce que ${esc(b.name)} apprend :</p><div class="choices">${V.pending.map((o,i)=>{const[t,d]=describe(o,b);return `<button class="choice" data-c="${i}"><b>${t}</b><span>${d}</span></button>`}).join('')}</div></div></div>`:''}`;
@@ -313,6 +319,7 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  api('GET','/api/top').then(({brutes:rows,masters})=>{const em=$('#topm');if(em)em.innerHTML=masters.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>${r.pupils} élève${r.pupils>1?'s':''}</span></li>`).join('')||'<li class="empty">Personne n\u2019a encore d\u2019élève : sois le premier !</li>';const el=$('#top');if(el)el.innerHTML=rows.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>niv. ${r.level}</span></li>`).join('')||'<li class="empty">Personne encore.</li>'}).catch(()=>{});
  if(MASTER&&!renderCell.seen){renderCell.seen=1;history.replaceState(null,'',location.pathname);
   alertBox(MASTER.toLowerCase()===b.name.toLowerCase()?['C\u2019est ton lien d\u2019invitation : il fonctionne !','Comme tu es déjà connecté, il t\u2019amène simplement à ta cellule. Tes amis, eux, verront l\u2019invitation et deviendront tes élèves en s\u2019inscrivant. Pour voir ce qu\u2019ils verront, ouvre le lien dans une fenêtre de navigation privée.']:[`Ce lien d\u2019invitation de ${MASTER} sert aux nouveaux joueurs.`,'Tu as déjà un cogneur, donc il ne peut pas devenir élève.'])}
+ startCountdown();
  if(V.news){alertBox(V.news);V.news=null}
  const cp=$('#cplink'),pl=$('#plink'),sh=$('#shlink');
  const copyLink=async()=>{const v=pl.value;let ok=false;
