@@ -48,11 +48,25 @@ const assert = require('node:assert');
   }
   r = await a('GET', '/api/replay?id=1'); assert.equal(r.status, 200);
   r = await b('GET', '/api/me'); const defs = r.data.hist.filter(h => !h.mine).length;
-  r = await a('GET', '/api/top'); assert.ok(r.data.length >= 2);
+  r = await a('GET', '/api/top'); assert.ok(r.data.brutes.length >= 2);
   // Concurrence : 6 combats lancés en même temps ne doivent pas dépasser la limite
   const c = client('10.0.0.9'); r = await c('POST', '/api/register', { username: 'zed', password: 'x' }); await c('POST', '/api/register', { username: 'carla', password: 'motdepasse3' }); await c('POST', '/api/brute', { name: 'Carla' });
   const par = await Promise.all(Array.from({ length: 9 }, () => c('POST', '/api/fight', { kind: 'ar', idx: 0 })));
   const okCount = par.filter(x => x.status === 200).length;  assert.ok(okCount <= 6, 'pas plus de 6 combats même en parallèle : ' + okCount);
+  // Élèves
+  const d = client('10.0.0.7');
+  await d('POST', '/api/register', { username: 'dora', password: 'motdepasse4' });
+  r = await d('POST', '/api/brute', { name: 'Dora', master: 'Inconnu' }); assert.equal(r.status, 404, 'maître inexistant');
+  r = await d('POST', '/api/brute', { name: 'Dora', master: 'bastoche' }); assert.equal(r.status, 201, JSON.stringify(r.data));
+  assert.equal(r.data.fightsLeft, 8, 'combats bonus élève'); assert.equal(r.data.master.name, 'Bastoche'); assert.ok(r.data.news && r.data.news[0].includes('Bienvenue'));
+  r = await a('GET', '/api/me'); assert.equal(r.data.pupils.length, 1); assert.ok(r.data.news.some(n => n.includes('Nouvel élève')));
+  const xpBefore = r.data.xp, lvlBefore = r.data.brute.level;
+  await pg.pg.query("update brutes set data = jsonb_set(data, '{xp}', '9') where name = 'Dora'");
+  r = await d('GET', '/api/me'); assert.equal(r.data.brute.level, 2); await d('POST', '/api/levelup', { choice: 0 });
+  r = await d('GET', '/api/me'); assert.equal(r.data.brute.level, 3, 'élève niveau 3');
+  r = await a('GET', '/api/me'); assert.ok(r.data.news.some(n => n.includes('niveau 3 : +3 XP')), JSON.stringify(r.data.news));
+  assert.ok(r.data.brute.level > lvlBefore || r.data.xp === xpBefore + 3, 'XP du maître');
+  r = await a('GET', '/api/top'); assert.equal(r.data.masters[0].name, 'Bastoche'); assert.equal(r.data.masters[0].pupils, 1);
   r = await a('POST', '/api/logout', {}); r = await a('GET', '/api/me'); assert.equal(r.status, 401);
   console.log(`OK — rejeu identique, adversaire joueur vu : ${sawPlayer}, défenses de Bob : ${defs}, combats parallèles acceptés : ${okCount}`);
   server.close(); await require('../lib/app.js').close(); await pg.stop(); process.exit(0);

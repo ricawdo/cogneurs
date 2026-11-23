@@ -30,6 +30,10 @@ create table if not exists brutes (
 create unique index if not exists brutes_name_lower on brutes (lower(name));
 create index if not exists brutes_level on brutes (level);
 
+-- Élèves : chaque cogneur peut avoir un maître
+alter table brutes add column if not exists master_id bigint references brutes(id) on delete set null;
+create index if not exists brutes_master on brutes (master_id);
+
 create table if not exists fights (
   id bigserial primary key,
   brute_id bigint not null references brutes(id) on delete cascade,
