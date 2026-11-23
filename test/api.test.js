@@ -87,6 +87,8 @@ const assert = require('node:assert');
   assert.ok(r.data.hist.some(x => !x.mine && x.won && x.xp === 1), 'défense gagnée visible avec +1 XP');
   await pg.pg.query(`update brutes set state = jsonb_set(jsonb_set(state, '{defDay}', '"${today}"'), '{defXp}', '3') where name = 'Fred'`);
   await h('POST', '/api/register', { username: 'hugo', password: 'motdepasse7' }); await h('POST', '/api/brute', { name: 'Hugo' });
+  await h('GET', '/api/me');
+  await pg.pg.query(`update brutes set state = jsonb_set(state, '{opps}', jsonb_build_array(jsonb_build_object('t', 'p', 'id', (select id from brutes where name = 'Fred')), '{"t":"b","name":"Bidule","level":1}'::jsonb, '{"t":"b","name":"Truc","level":1}'::jsonb)) where name = 'Hugo'`);
   r = await h('GET', '/api/me'); const fi = r.data.opps.findIndex(o => o.name === 'Fred'); assert.ok(fi >= 0, 'Fred proposé à Hugo');
   r = await h('POST', '/api/fight', { kind: 'ar', idx: fi }); assert.equal(r.data.won, false);
   r = await f('GET', '/api/me'); assert.equal(r.data.xp, 1, 'plafond de défense respecté');
