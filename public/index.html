@@ -131,6 +131,16 @@ button.sm{min-height:36px;padding:4px 12px;font-size:14px}
 .pupils{background:color-mix(in srgb,var(--field) 22%,var(--bg))}.pupils p{max-width:70ch}
 .plist{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}.plist li{display:flex;justify-content:space-between;gap:8px;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:8px 12px}
 .cdline{font-weight:800;font-size:18px;margin:16px 0 0}.cdline .cd{font-variant-numeric:tabular-nums;color:var(--red)}.event .cdline .cd{color:#ffd23f}
+.nbanner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px max(5vw,16px);background:var(--red);color:#fff}.nbanner span{flex:1 1 220px}.nbanner .ghost{color:#fff;box-shadow:inset 0 0 0 2px #fff}.nbanner button:not(.ghost){background:#fff;color:var(--red);box-shadow:none}
+.news{background:var(--ink);color:var(--bg)}.news h2{color:var(--bg)}
+.ngrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.ncard{background:var(--bg);color:var(--ink);border-radius:18px;padding:18px;position:relative;display:flex;flex-direction:column}
+.ncard h3{margin:6px 0 6px;font-size:22px;line-height:1.15}.ncard p,.ncard ul{margin:6px 0;font-size:15px;line-height:1.45}.ncard ul{padding-left:18px}
+.npic{height:120px;display:grid;place-items:center;background:radial-gradient(closest-side,var(--spot),transparent);border-radius:12px;margin-bottom:6px}
+.npets{display:flex;align-items:flex-end;gap:2px;width:100%}.npets div{flex:1}.npets svg{width:100%;height:auto}
+.nduo{display:flex;align-items:flex-end;gap:6px;height:100%}.nduo div{width:80px}.nduo .small{width:56px}.nduo svg{width:100%;height:auto}
+.nicon{height:100px;width:auto}
+.ntag{align-self:flex-start;font-family:"Lilita One";font-size:13px;padding:2px 10px;border-radius:99px;background:var(--red);color:#fff}.ntag.soon{background:#7b3f99}.ntag.ev{background:var(--navy)}
 @media(max-width:700px){.f.pet.fly{width:12%}.f.pet.small{width:10%}#who span{display:none}.hgrid{grid-template-columns:minmax(0,1fr)}.pedestal{min-height:260px;order:-1}.cell .pedestal{order:0}.arena{aspect-ratio:16/11}.f{width:20%}.f.pet{width:11%}.f.pet.ours{width:15%}.f.pet.bird{width:8%}.vs{font-size:22px}.hpb b{font-size:17px}.camp{grid-template-columns:80px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.f .spr,.hpb .bar i{transition:none}}
 </style>
@@ -276,7 +286,7 @@ function renderAuth(mode=MASTER?'register':'login'){V=null;setWho();const demo=b
  <label for="pw">Mot de passe${mode==='register'?' (8 caractères minimum)':''}</label><input id="pw" type="password" autocomplete="${mode==='register'?'new-password':'current-password'}" minlength="${mode==='register'?8:1}" required>
  <div class="row" style="margin-top:16px"><button>${mode==='register'?'Créer mon compte':'Entrer dans l’arène'}</button></div><p id="err" class="err"></p></form>
  ${mode==='register'?'<p class="note2">Pas d’e-mail demandé pour l’instant : note bien ton mot de passe, on ne pourra pas le récupérer.</p>':''}</div>
- <div class="pedestal"><div class="big">${sprite(demo.look,demo.weapons[0])}</div></div></div></section>`;
+ <div class="pedestal"><div class="big">${sprite(demo.look,demo.weapons[0])}</div></div></div></section>${newsBand()}`;
  app.querySelectorAll('[data-m]').forEach(x=>x.addEventListener('click',()=>renderAuth(x.dataset.m)));
  $('#af').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter||$('#af button');btn.disabled=true;
   try{V=await api('POST','/api/'+(mode==='register'?'register':'login'),{username:$('#un').value.trim(),password:$('#pw').value});route()}catch(er){fail('#err',er)}finally{btn.disabled=false}})}
@@ -302,13 +312,38 @@ function eventBand(){const ev=V.event,b=V.brute;if(!ev)return'';const d=daysLeft
  <p class="err" id="cerr"></p><p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`;
  return `<section class="band event"><div class="wrap">${head}<div class="h2row"><p>Tu défiles côté <b>${NAMES[ev.camp].camp}</b>. Face à toi : ${NAMES[other(ev.camp)].camp.toLowerCase()}.</p><span class="pill">${ev.fightsLeft}/${ev.fpd} combats bonus</span></div>
  <div class="opps">${ev.opps.map((o,i)=>o?oppCard(o,i,'ev',ev.fightsLeft&&!V.pending):'').join('')}</div>${ev.fightsLeft?'':'<p class="cdline">Combats bonus épuisés. Retour dans <b class="cd"></b></p>'}<p class="note">Parodie burlesque : pas de méchants, juste des bosses.</p></div></section>`}
+/* ---------- nouveautés ---------- */
+const NEWS_V='2026-11-25';
+const seenNews=()=>{try{return localStorage.getItem('cog_news')===NEWS_V}catch(e){return true}};
+const markNews=()=>{try{localStorage.setItem('cog_news',NEWS_V)}catch(e){}};
+function newsBand(){const evOn=Date.now()<Date.parse('2026-12-14T00:00:00+01:00');
+ const m=base('Grobix'),e=base('Ginette'),p=asCamp(base('Bastoche'),'police'),q=asCamp(base('Momo'),'manif');
+ const pets=['chat','raton','manicou','aigle','serpent'];
+ const cards=[
+  {tag:'Nouveau',t:'5 nouveaux animaux',pic:`<div class="npets">${pets.map(k=>`<div>${petSvg(k)}</div>`).join('')}</div>`,
+   d:`<ul><li><b>Chat</b> (niv. 2) : esquive presque tout.</li><li><b>Raton laveur</b> (niv. 3) : ramasse les armes tombées et les rapporte à son maître.</li><li><b>Manicou</b> (niv. 4) : fait le mort, puis se relève et frappe par surprise.</li><li><b>Aigle</b> (niv. 5) : attaque du ciel, impossible à bloquer ou contrer.</li><li><b>Serpent</b> (niv. 7) : sa morsure empoisonne pendant 3 tours.</li></ul><p>Ils apparaissent au hasard dans tes bonus de niveau. 4 animaux maximum par cogneur : choisis bien ta ménagerie !</p>`},
+  {tag:'Nouveau',t:'Deviens maître : recrute des élèves',pic:`<div class="nduo"><div>${sprite(m.look,m.weapons[0])}</div><div class="small">${sprite(e.look,null)}</div></div>`,
+   d:`<p>Dans ta cellule, copie ton <b>lien de maître</b> et envoie-le à tes amis. Chacun qui crée son cogneur avec devient ton élève :</p><ul><li>lui reçoit <b>+2 combats</b> le premier jour ;</li><li>toi tu gagnes <b>+3, +5 puis +10 XP</b> quand il atteint les niveaux 3, 5 et 10 ;</li><li>et tu grimpes dans le classement des <b>Meilleurs maîtres</b>.</li></ul>`},
+  {tag:'Nouveau',t:'Tu progresses même quand tu dors',pic:`<svg viewBox="0 0 120 90" class="nicon"><path d="M60 8L98 22V46Q98 72 60 84Q22 72 22 46V22Z" fill="#1f6f78"/><path d="M60 18L88 28V46Q88 66 60 75Z" fill="#fff" opacity=".25"/><text x="60" y="56" text-anchor="middle" font-family="Lilita One,Impact" font-size="24" fill="#fff">+1</text></svg>`,
+   d:`<p>Chaque fois qu’un joueur attaque ton cogneur, tu gagnes <b>+1 XP</b>, que tu gagnes ou perdes la défense (jusqu’à 3 par jour). Tes défenses apparaissent dans ton historique : tu peux les revoir.</p>`},
+  {tag:'Nouveau',t:'Des combats toujours variés',pic:`<svg viewBox="0 0 120 90" class="nicon"><circle cx="60" cy="46" r="34" fill="#f4b41a"/><circle cx="60" cy="46" r="27" fill="#fff"/><path d="M60 46V28M60 46L74 54" stroke="#1d1310" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="46" r="4" fill="#e23d28"/></svg>`,
+   d:`<p>Tu n’affrontes plus jamais deux fois le même adversaire dans la même journée. Et quand tes combats sont épuisés, un <b>décompte en direct</b> t’indique quand revenir (minuit, heure de Paris).</p>`},
+  ...(evOn?[{tag:'Événement',t:'Manif à Paris : XP ×2',pic:`<div class="nduo"><div>${sprite(q.look,'gourdin','manif')}</div><div>${sprite(p.look,'parapluie','police')}</div></div>`,
+   d:`<p>Jusqu’au <b>13 décembre</b>, choisis ton camp (manifestant ou forces de l’ordre) pour <b>4 combats bonus par jour</b> à XP doublée.</p><ul><li>Chaque victoire fait avancer la <b>jauge de ton camp</b> ; le camp gagnant reçoit +5 XP à la fin.</li><li>Le camp en minorité gagne même <b>XP ×3</b>.</li></ul>`}]:[]),
+  {tag:'Bientôt',t:'Les dojos',pic:`<svg viewBox="0 0 120 90" class="nicon"><path d="M10 34Q60 10 110 34L100 38Q60 22 20 38Z" fill="#e23d28"/><rect x="26" y="38" width="68" height="8" fill="#1d1310"/><rect x="32" y="46" width="8" height="36" fill="#1d1310"/><rect x="80" y="46" width="8" height="36" fill="#1d1310"/><rect x="44" y="52" width="32" height="30" fill="#f4b41a"/><path d="M60 52V82" stroke="#1d1310" stroke-width="2"/></svg>`,
+   d:`<p>Avec 5 élèves, tu pourras ouvrir ton <b>dojo</b>, réunir ta troupe et organiser des <b>tournois internes</b> pour désigner le champion du dojo. Commence à recruter dès maintenant !</p>`},
+ ];
+ return `<section class="band news" id="news"><div class="wrap"><div class="h2row"><h2>Quoi de neuf dans l’arène ?</h2></div>
+ <div class="ngrid">${cards.map(c=>`<article class="ncard"><div class="npic">${c.pic}</div><span class="ntag ${c.tag==='Bientôt'?'soon':c.tag==='Événement'?'ev':''}">${c.tag}</span><h3>${c.t}</h3>${c.d}</article>`).join('')}</div></div></section>`}
+function newsBanner(){return seenNews()?'':`<div class="nbanner" id="nbanner"><b>Du nouveau dans l’arène !</b> <span>5 animaux inédits, les élèves, l’XP en défense…</span><button class="sm" id="nsee">Voir les nouveautés</button><button class="ghost sm" id="nclose" aria-label="Masquer">×</button></div>`}
+function bindNews(){const s=$('#nsee'),c=$('#nclose');if(s)s.addEventListener('click',()=>{markNews();$('#nbanner').remove();$('#news').scrollIntoView({behavior:'smooth'})});if(c)c.addEventListener('click',()=>{markNews();$('#nbanner').remove()})}
 function pupilBand(){const b=V.brute,link=`${location.origin}/?maitre=${encodeURIComponent(b.name)}`,rw=Object.entries(V.pupilRewards).map(([l,x])=>`niveau ${l} : +${x} XP`).join(', ');
  return `<section class="band pupils"><div class="wrap"><div class="h2row"><h2>Mes élèves</h2><span class="pill">${V.pupils.length} élève${V.pupils.length>1?'s':''}</span></div>
  <p>Partage ton lien : chaque ami qui crée son cogneur avec devient ton élève. Il reçoit ${V.pupilBonus} combats bonus le premier jour, et toi tu gagnes de l\u2019XP quand il progresse (${rw}).</p>
  <div class="row"><input id="plink" readonly value="${esc(link)}" aria-label="Ton lien de maître"><button id="cplink">Copier le lien</button><button id="shlink" class="ghost">Partager</button></div><p class="note2" id="cpmsg" role="status"></p>
  ${V.pupils.length?`<ul class="plist">${V.pupils.map(p=>`<li><b>${esc(p.name)}</b><span>niv. ${p.level}</span></li>`).join('')}</ul>`:'<p class="empty">Pas encore d\u2019élève. Envoie ton lien à tes amis !</p>'}</div></section>`}
 function renderCell(){setWho();const b=V.brute,n=V.need;
- app.innerHTML=`<section class="hero band cell"><div class="hgrid"><div class="pedestal"><div class="big">${sprite(b.look,b.weapons[0])}</div><div class="pets">${b.pets.map(p=>`<div>${petSvg(p)}</div>`).join('')}</div></div>
+ app.innerHTML=`${newsBanner()}<section class="hero band cell"><div class="hgrid"><div class="pedestal"><div class="big">${sprite(b.look,b.weapons[0])}</div><div class="pets">${b.pets.map(p=>`<div>${petSvg(p)}</div>`).join('')}</div></div>
  <div><h1>${esc(b.name)}</h1><p class="sub">Niveau ${b.level} · ${b.wins} victoire${b.wins>1?'s':''} · ${b.losses} défaite${b.losses>1?'s':''}${V.master?` · élève de ${esc(V.master.name)}`:''}${V.pupils.length?` · ${V.pupils.length} élève${V.pupils.length>1?'s':''}`:''}</p>
  <div class="stat"><span>Expérience</span><div class="xp"><i style="width:${V.xp/n*100}%"></i></div><span>${V.xp}/${n}</span></div>
  ${statRows(b)}<h3>Arsenal</h3><div class="items">${items(b)}</div>${V.trophies&&V.trophies.length?`<h3>Événements</h3><div class="troph">${V.trophies.map(t=>`<span>${t.won?'Victoire':'Participation'} · ${esc(t.title)} · ${t.camp==='manif'?'Manifestant·e':'Forces de l\u2019ordre'}</span>`).join('')}</div>`:''}</div></div></section>
@@ -321,6 +356,7 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  <div class="two"><div><h3>Derniers combats</h3><ul class="hist">${V.hist.length?V.hist.map(h=>`<li><span class="tag ${h.won?'':'l'}">${h.won?'Victoire':'Défaite'}</span>${h.ev?'<span class="tag e">Manif</span>':''}${h.mine?'contre':'<span class="tag d">Défense</span> attaqué par'} ${esc(h.opp)} (niv. ${h.lvl})${h.mine||h.xp?` · +${h.xp} XP`:''} <button class="ghost sm" data-r="${h.id}">Revoir</button></li>`).join(''):'<li class="empty">Aucun combat pour l’instant.</li>'}</ul></div>
  <div><h3>Classement</h3><ol class="rank" id="top"><li class="empty">Chargement…</li></ol><h3>Meilleurs maîtres</h3><ol class="rank" id="topm"><li class="empty">Chargement…</li></ol></div></div></div></section>
  ${pupilBand()}
+ ${newsBand()}
  ${V.pending?`<div class="modal"><div class="mbox"><h2>Niveau ${b.level} !</h2><p>Choisis ce que ${esc(b.name)} apprend :</p><div class="choices">${V.pending.map((o,i)=>{const[t,d]=describe(o,b);return `<button class="choice" data-c="${i}"><b>${t}</b><span>${d}</span></button>`}).join('')}</div></div></div>`:''}`;
  app.querySelectorAll('[data-o]').forEach(x=>x.addEventListener('click',()=>fight(x.dataset.k,+x.dataset.o,x)));
  app.querySelectorAll('[data-r]').forEach(x=>x.addEventListener('click',async()=>{try{play(await api('GET','/api/replay?id='+x.dataset.r))}catch(er){fail('#ferr',er)}}));
@@ -329,7 +365,7 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  api('GET','/api/top').then(({brutes:rows,masters})=>{const em=$('#topm');if(em)em.innerHTML=masters.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>${r.pupils} élève${r.pupils>1?'s':''}</span></li>`).join('')||'<li class="empty">Personne n\u2019a encore d\u2019élève : sois le premier !</li>';const el=$('#top');if(el)el.innerHTML=rows.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>niv. ${r.level}</span></li>`).join('')||'<li class="empty">Personne encore.</li>'}).catch(()=>{});
  if(MASTER&&!renderCell.seen){renderCell.seen=1;history.replaceState(null,'',location.pathname);
   alertBox(MASTER.toLowerCase()===b.name.toLowerCase()?['C\u2019est ton lien d\u2019invitation : il fonctionne !','Comme tu es déjà connecté, il t\u2019amène simplement à ta cellule. Tes amis, eux, verront l\u2019invitation et deviendront tes élèves en s\u2019inscrivant. Pour voir ce qu\u2019ils verront, ouvre le lien dans une fenêtre de navigation privée.']:[`Ce lien d\u2019invitation de ${MASTER} sert aux nouveaux joueurs.`,'Tu as déjà un cogneur, donc il ne peut pas devenir élève.'])}
- startCountdown();
+ startCountdown();bindNews();
  if(V.news){alertBox(V.news);V.news=null}
  const cp=$('#cplink'),pl=$('#plink'),sh=$('#shlink');
  const copyLink=async()=>{const v=pl.value;let ok=false;
