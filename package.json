@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "description": "L'Arène des Cogneurs : auto-battler en ligne (Vercel + Supabase)",
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "node test/dev.js",
     "test": "node test/api.test.js"
   },
-  "dependencies": { "postgres": "^3.4.9" },
-  "devDependencies": { "@electric-sql/pglite": "^0.5.17", "@electric-sql/pglite-socket": "^0.2.20" },
+  "dependencies": {
+    "postgres": "^3.4.9",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.17",
+    "@electric-sql/pglite-socket": "^0.2.20"
+  },
   "license": "UNLICENSED"
 }

@@ -92,6 +92,27 @@ const assert = require('node:assert');
   r = await h('GET', '/api/me'); const fi = r.data.opps.findIndex(o => o.name === 'Fred'); assert.ok(fi >= 0, 'Fred proposé à Hugo');
   r = await h('POST', '/api/fight', { kind: 'ar', idx: fi }); assert.equal(r.data.won, false);
   r = await f('GET', '/api/me'); assert.equal(r.data.xp, 1, 'plafond de défense respecté');
+  // Notifications
+  r = await a('GET', '/api/push-key'); assert.ok(r.data.key && r.data.key.length > 80, 'clé publique VAPID');
+  const r2 = await a('GET', '/api/push-key'); assert.equal(r2.data.key, r.data.key, 'clé stable');
+  r = await a('POST', '/api/push', { subscription: { endpoint: 'http://pas-https', keys: { p256dh: 'x', auth: 'y' } } }); assert.equal(r.status, 400);
+  const got = [];
+  const os = require('node:os'), fs = require('node:fs'), path = require('node:path'), dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cert-'));
+  require('node:child_process').execSync(`openssl req -x509 -newkey rsa:2048 -nodes -keyout ${dir}/k.pem -out ${dir}/c.pem -days 1 -subj /CN=localhost 2>/dev/null`);
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  const mock = require('node:https').createServer({ key: fs.readFileSync(dir + '/k.pem'), cert: fs.readFileSync(dir + '/c.pem') }, (q, s) => { got.push(q.url); s.writeHead(q.url.includes('gone') ? 410 : 201); s.end(); }).listen(3978);
+  const wp = require('web-push'), k = wp.generateVAPIDKeys();
+  const crypto = require('node:crypto'), ecdh = crypto.createECDH('prime256v1'); ecdh.generateKeys();
+  const p256dh = ecdh.getPublicKey().toString('base64url'), auth = crypto.randomBytes(16).toString('base64url');
+  r = await a('POST', '/api/push', { subscription: { endpoint: 'https://push.example.com/abc', keys: { p256dh, auth } } }); assert.equal(r.status, 200);
+  await pg.pg.query(`update push_subs set endpoint = 'https://localhost:3978/ok', sub = jsonb_set(sub, '{endpoint}', '"https://localhost:3978/ok"')`);
+  await pg.pg.query(`insert into push_subs (user_id, endpoint, sub, created) select id, 'https://localhost:3978/gone', jsonb_build_object('endpoint','https://localhost:3978/gone','keys',jsonb_build_object('p256dh','${p256dh}','auth','${auth}')), 0 from users where username = 'bob'`);
+  process.env.CRON_SECRET = 'test-secret';
+  
+  const cr = await fetch(base + '/api/cron-notify', { headers: { Authorization: 'Bearer test-secret' } }).then(x => x.json());
+  assert.equal(cr.sent, 1, JSON.stringify(cr)); assert.equal(cr.removed, 1, 'abonnement expiré supprimé'); assert.ok(got.includes('/ok'));
+  const cr2 = await fetch(base + '/api/cron-notify', { headers: { Authorization: 'Bearer test-secret' } }).then(x => x.json());
+  assert.ok(cr2.skipped, 'une seule fois par jour'); mock.close();
   r = await a('POST', '/api/logout', {}); r = await a('GET', '/api/me'); assert.equal(r.status, 401);
   console.log(`OK — rejeu identique, adversaire joueur vu : ${sawPlayer}, défenses de Bob : ${defs}, combats parallèles acceptés : ${okCount}`);
   server.close(); await require('../lib/app.js').close(); await pg.stop(); process.exit(0);

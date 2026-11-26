@@ -64,9 +64,25 @@ create table if not exists event_scores (
   primary key (event_id, camp)
 );
 
+create table if not exists kv (
+  key text primary key,
+  value text not null
+);
+
+create table if not exists push_subs (
+  id bigserial primary key,
+  user_id bigint not null references users(id) on delete cascade,
+  endpoint text not null unique,
+  sub jsonb not null,
+  created bigint not null
+);
+create index if not exists push_subs_user on push_subs (user_id);
+
 alter table users enable row level security;
 alter table sessions enable row level security;
 alter table brutes enable row level security;
 alter table fights enable row level security;
 alter table rate_hits enable row level security;
 alter table event_scores enable row level security;
+alter table kv enable row level security;
+alter table push_subs enable row level security;

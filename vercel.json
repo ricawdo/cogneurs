@@ -6,7 +6,7 @@
   ],
   "functions": {
     "api/*.js": {
-      "maxDuration": 10
+      "maxDuration": 30
     }
   },
   "headers": [
@@ -30,6 +30,12 @@
           "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
         }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron-notify",
+      "schedule": "0 7 * * *"
     }
   ]
 }
