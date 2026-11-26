@@ -148,12 +148,14 @@ button.sm{min-height:36px;padding:4px 12px;font-size:14px}
 .nicon{height:100px;width:auto}
 .ntag{align-self:flex-start;font-family:"Lilita One";font-size:13px;padding:2px 10px;border-radius:99px;background:var(--red);color:#fff}.ntag.soon{background:#7b3f99}.ntag.ev{background:var(--navy)}
 .notif{margin:0 0 16px;padding:12px 16px;border-radius:14px;background:color-mix(in srgb,var(--field) 25%,var(--bg));border:2px solid var(--line)}.notif p{margin:4px 0}
+.hright{display:flex;gap:10px;align-items:center}#installbtn{color:var(--bg);box-shadow:inset 0 0 0 2px var(--bg)}#installbtn[hidden]{display:none}
+.modal.guide .mbox{text-align:left;max-width:560px;max-height:90vh;overflow:auto}.gtabs{display:flex;gap:4px;flex-wrap:wrap;margin:12px 0 4px}.gtabs .tab{font-size:15px;min-height:38px;padding:4px 12px}.gsteps{padding-left:22px;margin:12px 0 18px}.gsteps li{margin:8px 0;line-height:1.45}
 @media(max-width:700px){.f.pet.fly{width:12%}.f.pet.small{width:10%}#who span{display:none}.hgrid{grid-template-columns:minmax(0,1fr)}.pedestal{min-height:260px;order:-1}.cell .pedestal{order:0}.arena{aspect-ratio:16/11}.f{width:20%}.f.pet{width:11%}.f.pet.ours{width:15%}.f.pet.bird{width:8%}.vs{font-size:22px}.hpb b{font-size:17px}.camp{grid-template-columns:80px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.f .spr,.hpb .bar i{transition:none}}
 </style>
 </head>
 <body>
-<header class="top"><span class="logo">Cogneurs</span><span id="who"></span></header>
+<header class="top"><span class="logo">Cogneurs</span><div class="hright"><button id="installbtn" class="ghost sm" hidden>Installer l'appli</button><span id="who"></span></div></header>
 <main id="app"></main>
 <p class="foot">Jeu original inspiré des auto-battlers à l'ancienne. Tous les visuels sont dessinés en code.</p>
 <script src="/engine.js"></script>
@@ -294,7 +296,7 @@ function renderAuth(mode=MASTER?'register':'login'){V=null;setWho();const demo=b
  <div class="row" style="margin-top:16px"><button>${mode==='register'?'Créer mon compte':'Entrer dans l’arène'}</button></div><p id="err" class="err"></p></form>
  ${mode==='register'?'<p class="note2">Pas d’e-mail demandé pour l’instant : note bien ton mot de passe, on ne pourra pas le récupérer.</p>':''}</div>
  <div class="pedestal"><div class="big">${sprite(demo.look,demo.weapons[0])}</div></div></div></section>${newsBand()}`;
- app.querySelectorAll('[data-m]').forEach(x=>x.addEventListener('click',()=>renderAuth(x.dataset.m)));
+ app.querySelectorAll('[data-m]').forEach(x=>x.addEventListener('click',()=>renderAuth(x.dataset.m)));app.querySelectorAll('[data-install]').forEach(x=>x.addEventListener('click',openInstall));
  $('#af').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter||$('#af button');btn.disabled=true;
   try{V=await api('POST','/api/'+(mode==='register'?'register':'login'),{username:$('#un').value.trim(),password:$('#pw').value});route()}catch(er){fail('#err',er)}finally{btn.disabled=false}})}
 function renderCreate(){setWho();
@@ -331,6 +333,8 @@ function newsBand(){const evOn=Date.now()<Date.parse('2026-12-14T00:00:00+01:00'
    d:`<ul><li><b>Chat</b> (niv. 2) : esquive presque tout.</li><li><b>Raton laveur</b> (niv. 3) : ramasse les armes tombées et les rapporte à son maître.</li><li><b>Manicou</b> (niv. 4) : fait le mort, puis se relève et frappe par surprise.</li><li><b>Aigle</b> (niv. 5) : attaque du ciel, impossible à bloquer ou contrer.</li><li><b>Serpent</b> (niv. 7) : sa morsure empoisonne pendant 3 tours.</li></ul><p>Ils apparaissent au hasard dans tes bonus de niveau. 4 animaux maximum par cogneur : choisis bien ta ménagerie !</p>`},
   {tag:'Nouveau',t:'Deviens maître : recrute des élèves',pic:`<div class="nduo"><div>${sprite(m.look,m.weapons[0])}</div><div class="small">${sprite(e.look,null)}</div></div>`,
    d:`<p>Dans ta cellule, copie ton <b>lien de maître</b> et envoie-le à tes amis. Chacun qui crée son cogneur avec devient ton élève :</p><ul><li>lui reçoit <b>+2 combats</b> le premier jour ;</li><li>toi tu gagnes <b>+3, +5 puis +10 XP</b> quand il atteint les niveaux 3, 5 et 10 ;</li><li>et tu grimpes dans le classement des <b>Meilleurs maîtres</b>.</li></ul>`},
+  {tag:'Nouveau',t:'Le jeu dans ta poche',pic:`<svg viewBox="0 0 120 90" class="nicon"><rect x="40" y="6" width="40" height="78" rx="8" fill="#1d1310"/><rect x="44" y="14" width="32" height="58" rx="3" fill="#f4b41a"/><circle cx="60" cy="78" r="3" fill="#555"/><rect x="50" y="24" width="20" height="20" rx="5" fill="#e23d28"/><path d="M53 38l4-8 4 5 3-3 3 6Z" fill="#fff"/><circle cx="88" cy="22" r="11" fill="#e23d28"/><text x="88" y="27" text-anchor="middle" font-family="Lilita One,Impact" font-size="14" fill="#fff">1</text></svg>`,
+   d:`<p>Installe Cogneurs sur ton téléphone comme une vraie appli, avec son icône, puis active les <b>notifications</b> : chaque matin, on te prévient que tes combats sont prêts.</p><p><button class="sm" data-install>Installer l\u2019appli</button></p>`},
   {tag:'Nouveau',t:'Tu progresses même quand tu dors',pic:`<svg viewBox="0 0 120 90" class="nicon"><path d="M60 8L98 22V46Q98 72 60 84Q22 72 22 46V22Z" fill="#1f6f78"/><path d="M60 18L88 28V46Q88 66 60 75Z" fill="#fff" opacity=".25"/><text x="60" y="56" text-anchor="middle" font-family="Lilita One,Impact" font-size="24" fill="#fff">+1</text></svg>`,
    d:`<p>Chaque fois qu’un joueur attaque ton cogneur, tu gagnes <b>+1 XP</b>, que tu gagnes ou perdes la défense (jusqu’à 3 par jour). Tes défenses apparaissent dans ton historique : tu peux les revoir.</p>`},
   {tag:'Nouveau',t:'Des combats toujours variés',pic:`<svg viewBox="0 0 120 90" class="nicon"><circle cx="60" cy="46" r="34" fill="#f4b41a"/><circle cx="60" cy="46" r="27" fill="#fff"/><path d="M60 46V28M60 46L74 54" stroke="#1d1310" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="46" r="4" fill="#e23d28"/></svg>`,
@@ -352,7 +356,7 @@ async function swReg(){if(!('serviceWorker' in navigator))return null;try{return
 async function initPush(){const box=$('#notif');if(!box)return;
  const msg=(html)=>{box.innerHTML=html};
  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
-  msg(isIOS&&!standalone?`<p><b>Sur iPhone</b>, pour recevoir une notification quand tes combats sont prêts : appuie sur <b>Partager</b> puis <b>Sur l’écran d’accueil</b>, et ouvre le jeu depuis la nouvelle icône.</p>`:`<p class="empty">Ce navigateur ne gère pas les notifications.</p>`);return}
+  msg(isIOS&&!standalone?`<p><b>Sur iPhone</b>, les notifications marchent seulement si le jeu est installé sur ton écran d’accueil.</p><button class="sm" id="howinstall">Voir comment installer l’appli</button>`:`<p class="empty">Ce navigateur ne gère pas les notifications.</p>`);const hi=$('#howinstall');if(hi)hi.addEventListener('click',()=>installGuide('ios'));return}
  const reg=await swReg();if(!reg){msg('<p class="empty">Notifications indisponibles ici.</p>');return}
  let sub=await reg.pushManager.getSubscription();
  const draw=()=>{if(sub&&Notification.permission==='granted'){msg(`<p><b>Notifications activées :</b> tu seras prévenu chaque matin quand tes combats sont rechargés.</p><button class="ghost sm" id="pushoff">Désactiver</button>`);$('#pushoff').addEventListener('click',off)}
@@ -394,7 +398,7 @@ function renderCell(){setWho();const b=V.brute,n=V.need;
  api('GET','/api/top').then(({brutes:rows,masters})=>{const em=$('#topm');if(em)em.innerHTML=masters.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>${r.pupils} élève${r.pupils>1?'s':''}</span></li>`).join('')||'<li class="empty">Personne n\u2019a encore d\u2019élève : sois le premier !</li>';const el=$('#top');if(el)el.innerHTML=rows.map((r,i)=>`<li class="${r.name===b.name?'me':''}"><span class="rk">${i+1}</span><span class="tm">${sprite(r.look,r.weapon)}</span><b>${esc(r.name)}</b><span>niv. ${r.level}</span></li>`).join('')||'<li class="empty">Personne encore.</li>'}).catch(()=>{});
  if(MASTER&&!renderCell.seen){renderCell.seen=1;history.replaceState(null,'',location.pathname);
   alertBox(MASTER.toLowerCase()===b.name.toLowerCase()?['C\u2019est ton lien d\u2019invitation : il fonctionne !','Comme tu es déjà connecté, il t\u2019amène simplement à ta cellule. Tes amis, eux, verront l\u2019invitation et deviendront tes élèves en s\u2019inscrivant. Pour voir ce qu\u2019ils verront, ouvre le lien dans une fenêtre de navigation privée.']:[`Ce lien d\u2019invitation de ${MASTER} sert aux nouveaux joueurs.`,'Tu as déjà un cogneur, donc il ne peut pas devenir élève.'])}
- startCountdown();bindNews();initPush();
+ startCountdown();bindNews();initPush();app.querySelectorAll('[data-install]').forEach(x=>x.addEventListener('click',openInstall));
  if(V.news){alertBox(V.news);V.news=null}
  const cp=$('#cplink'),pl=$('#plink'),sh=$('#shlink');
  const copyLink=async()=>{const v=pl.value;let ok=false;
@@ -455,7 +459,44 @@ function play(data){const{A,B,seed,won,gain}=data,isEv=data.ev,{F,ev}=simulate(A
    $('#back').addEventListener('click',async()=>{try{V=await api('GET','/api/me')}catch(er){}route()})}}
  scrollTo(0,0);(async()=>{for(const e of ev)await show(e)})()}
 
+/* ---------- installation de l'appli ---------- */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;const b=$('#installbtn');if(b)b.hidden=true});
+const SHARE_ICON='<svg viewBox="0 0 24 24" width="20" height="20" aria-label="icône Partager" style="vertical-align:-4px"><path d="M12 3v12M7 8l5-5 5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H5v10h14V11h-1" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>';
+const MENU_ICON='<b style="font-size:20px;line-height:1">⋮</b>';
+const GUIDES={
+ ios:{t:'iPhone / iPad',steps:[
+  'Ouvre <b>cogneurs.vercel.app</b> dans <b>Safari</b>.',
+  `Appuie sur le bouton <b>Partager</b> ${SHARE_ICON} (le carré avec une flèche), en bas de l’écran sur iPhone, en haut sur iPad.`,
+  'Fais défiler la liste et choisis <b>« Sur l’écran d’accueil »</b>.',
+  'Appuie sur <b>« Ajouter »</b> en haut à droite : l’icône Cogneurs apparaît sur ton écran d’accueil.',
+  'Ouvre le jeu <b>depuis cette icône</b>, puis active les notifications dans ta cellule pour être prévenu quand tes combats sont prêts.']},
+ android:{t:'Android',steps:[
+  'Ouvre <b>cogneurs.vercel.app</b> dans <b>Chrome</b>.',
+  `Appuie sur le menu ${MENU_ICON} en haut à droite.`,
+  'Choisis <b>« Installer l’application »</b> (ou <b>« Ajouter à l’écran d’accueil »</b>).',
+  'Confirme avec <b>« Installer »</b> : l’icône Cogneurs apparaît avec tes autres applis.',
+  'Ouvre le jeu depuis l’icône et active les notifications dans ta cellule.']},
+ desktop:{t:'Ordinateur',steps:[
+  'Dans <b>Chrome</b> ou <b>Edge</b>, clique sur l’icône d’installation à droite de la barre d’adresse (un petit écran avec une flèche).',
+  'Clique sur <b>« Installer »</b> : le jeu s’ouvre dans sa propre fenêtre et se range avec tes applications.',
+  'Sur <b>Mac avec Safari</b> : menu <b>Fichier</b> puis <b>« Ajouter au Dock »</b>.',
+  'Active ensuite les notifications dans ta cellule.']}};
+const platform=()=>isIOS?'ios':/Android/i.test(navigator.userAgent)?'android':'desktop';
+function installGuide(which=platform()){document.querySelectorAll('.modal.guide').forEach(m=>m.remove());
+ const d=document.createElement('div');d.className='modal guide';
+ const draw=k=>{const g=GUIDES[k];d.innerHTML=`<div class="mbox" role="dialog" aria-label="Installer l’appli"><h2>Installer l’appli</h2>
+  <p>Le jeu s’installe comme une vraie application : une icône sur ton écran, le plein écran, et les notifications quand tes combats sont prêts. C’est gratuit et ne prend presque aucune place.</p>
+  <div class="gtabs">${Object.keys(GUIDES).map(x=>`<button class="tab ${x===k?'on':''}" data-g="${x}">${GUIDES[x].t}</button>`).join('')}</div>
+  <ol class="gsteps">${g.steps.map(x=>`<li>${x}</li>`).join('')}</ol>
+  <button id="gclose">J’ai compris</button></div>`;
+  d.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>draw(b.dataset.g)));d.querySelector('#gclose').addEventListener('click',()=>d.remove())};
+ draw(which);d.addEventListener('click',e=>{if(e.target===d)d.remove()});document.body.append(d)}
+async function openInstall(){if(deferredPrompt){deferredPrompt.prompt();try{const c=await deferredPrompt.userChoice;deferredPrompt=null;if(c.outcome==='accepted')return}catch(e){}}installGuide()}
+function initInstall(){const b=$('#installbtn');if(!b)return;b.hidden=standalone;b.onclick=openInstall}
 function route(){if(!V)return renderAuth();if(!V.brute)return renderCreate();renderCell()}
+initInstall();
 api('GET','/api/me').then(v=>{V=v;route()}).catch(()=>renderAuth());
 }
 </script>
