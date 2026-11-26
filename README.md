@@ -28,7 +28,7 @@ npm test        # test de bout en bout de l'API
 | `public/engine.js` | Moteur du jeu, partagé navigateur / serveur |
 | `lib/app.js` | Logique serveur : comptes, sessions, combats, événement |
 | `dev-server.js` | Serveur local pour le développement (pas utilisé sur Vercel) |
-| `api/*.js` | Points d'entrée Vercel (un fichier par route) |
+| `api/index.js` | Point d'entrée Vercel unique : toutes les routes `/api/*` y sont réécrites (l'offre gratuite limite à 12 fonctions) |
 | `db/schema.sql` | Tables Postgres (RLS activée sans politique : invisibles depuis les clés publiques Supabase) |
 
 ## Lancer un nouvel événement

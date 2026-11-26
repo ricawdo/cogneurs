@@ -17,6 +17,8 @@ const assert = require('node:assert');
   r = await b('POST', '/api/register', { username: 'ALICE', password: 'motdepasse1' }); assert.equal(r.status, 409);
   r = await b('POST', '/api/register', { username: 'bob', password: 'motdepasse2' }); assert.equal(r.status, 201);
   r = await anon('GET', '/api/me'); assert.equal(r.status, 401);
+  r = await anon('GET', '/api/index?__route=me'); assert.equal(r.status, 401, 'routage Vercel réécrit');
+  r = await anon('GET', '/api/index?__route=top'); assert.equal(r.status, 200, 'routage Vercel vers top');
   r = await anon('POST', '/api/login', { username: 'alice', password: 'faux' }); assert.equal(r.status, 401);
   r = await anon('POST', '/api/login', { username: 'Alice', password: 'motdepasse1' }); assert.equal(r.status, 200, 'connexion insensible à la casse');
   r = await anon('POST', '/api/login', { username: 'alice', password: 'motdepasse1' }, 'text/plain'); assert.equal(r.status, 415);
@@ -47,6 +49,7 @@ const assert = require('node:assert');
     assert.deepEqual(r.data.event.players, { manif: 1, police: 1 });
   }
   r = await a('GET', '/api/replay?id=1'); assert.equal(r.status, 200);
+  r = await a('GET', '/api/index?__route=replay&id=1'); assert.equal(r.status, 200, 'routage avec paramètre');
   r = await b('GET', '/api/me'); const defs = r.data.hist.filter(h => !h.mine).length;
   r = await a('GET', '/api/top'); assert.ok(r.data.brutes.length >= 2);
   // Concurrence : 6 combats lancés en même temps ne doivent pas dépasser la limite

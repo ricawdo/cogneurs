@@ -5,7 +5,7 @@
     "cdg1"
   ],
   "functions": {
-    "api/*.js": {
+    "api/index.js": {
       "maxDuration": 30
     }
   },
@@ -36,6 +36,12 @@
     {
       "path": "/api/cron-notify",
       "schedule": "0 7 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?__route=:path*"
     }
   ]
 }
