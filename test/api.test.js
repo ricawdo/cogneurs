@@ -109,11 +109,14 @@ const assert = require('node:assert');
   const p256dh = ecdh.getPublicKey().toString('base64url'), auth = crypto.randomBytes(16).toString('base64url');
   r = await a('POST', '/api/push', { subscription: { endpoint: 'https://push.example.com/abc', keys: { p256dh, auth } } }); assert.equal(r.status, 200);
   await pg.pg.query(`update push_subs set endpoint = 'https://localhost:3978/ok', sub = jsonb_set(sub, '{endpoint}', '"https://localhost:3978/ok"')`);
+  await pg.pg.query(`update push_subs set user_id = (select id from users where username = 'dora')`);
+  await pg.pg.query(`insert into push_subs (user_id, endpoint, sub, created) select id, 'https://localhost:3978/alice', jsonb_build_object('endpoint','https://localhost:3978/alice','keys',jsonb_build_object('p256dh','${p256dh}','auth','${auth}')), 0 from users where username = 'alice'`);
   await pg.pg.query(`insert into push_subs (user_id, endpoint, sub, created) select id, 'https://localhost:3978/gone', jsonb_build_object('endpoint','https://localhost:3978/gone','keys',jsonb_build_object('p256dh','${p256dh}','auth','${auth}')), 0 from users where username = 'bob'`);
   process.env.CRON_SECRET = 'test-secret';
   
   const cr = await fetch(base + '/api/cron-notify', { headers: { Authorization: 'Bearer test-secret' } }).then(x => x.json());
   assert.equal(cr.sent, 1, JSON.stringify(cr)); assert.equal(cr.removed, 1, 'abonnement expiré supprimé'); assert.ok(got.includes('/ok'));
+  assert.equal(cr.skipped, 1, 'pas de notification si tous les combats sont déjà joués'); assert.ok(!got.includes('/alice'));
   const cr2 = await fetch(base + '/api/cron-notify', { headers: { Authorization: 'Bearer test-secret' } }).then(x => x.json());
   assert.ok(cr2.skipped, 'une seule fois par jour'); mock.close();
   r = await a('POST', '/api/logout', {}); r = await a('GET', '/api/me'); assert.equal(r.status, 401);
